@@ -132,7 +132,7 @@ function login() {
     formData.append("password", password);
 
     fetch(
-        "http://localhost/sms/backend/auth/login.php",
+        "/backend/auth/login.php",
         {
             method:"POST",
             body:formData
