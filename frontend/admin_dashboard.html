@@ -299,7 +299,7 @@ function goUploadNotes() {
 }
 
 fetch(
-    "http://localhost/sms/backend/admin/get_dashboard_stats.php"
+    "/backend/admin/get_dashboard_stats.php"
 )
 
 .then(res => res.json())
@@ -365,7 +365,7 @@ fetch(
         data.questions + " quiz question(s).";
 
     fetch(
-    "http://localhost/sms/backend/admin/get_topic_progress.php"
+    "/backend/admin/get_topic_progress.php"
 )
 
 .then(res => res.json())

@@ -54,7 +54,7 @@ const subject_id =
 let questions = [];
 
 fetch(
-    "http://localhost/sms/backend/quiz/get_diagnostic_questions.php?subject_id=" + subject_id
+    "/backend/quiz/get_diagnostic_questions.php?subject_id=" + subject_id
 )
 
 .then(res => res.json())
@@ -155,7 +155,7 @@ function submitDiagnosticQuiz() {
     });
 
     fetch(
-        "http://localhost/sms/backend/quiz/submit_diagnostic_quiz.php",
+        "/backend/quiz/submit_diagnostic_quiz.php",
         {
 
             method:"POST",

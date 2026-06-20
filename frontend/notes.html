@@ -148,7 +148,7 @@ localStorage.setItem("topic_id", topic_id);
 localStorage.setItem("last_topic_id", topic_id);
 
 fetch(
-    "http://localhost/sms/backend/progress/update_last_opened.php",
+    "/backend/progress/update_last_opened.php",
     {
         method:"POST",
         headers:{
@@ -171,7 +171,7 @@ let totalPages = 1;
 let pdfScale = 1.0;
 
 const pdfUrl =
-    "http://localhost/sms/backend/get_pdf.php?topic_id=" + topic_id;
+    "/backend/get_pdf.php?topic_id=" + topic_id;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -182,7 +182,7 @@ loadPDF();
 function loadLesson() {
 
     fetch(
-`http://localhost/sms/backend/lessons/get_lesson_sections.php?topic_id=${topic_id}`
+`/backend/lessons/get_lesson_sections.php?topic_id=${topic_id}`
     )
 
     .then(res => res.json())
@@ -389,7 +389,7 @@ function zoomOut() {
 function loadSavedPage() {
 
     fetch(
-        "http://localhost/sms/backend/progress/get_progress.php",
+        "/backend/progress/get_progress.php",
         {
             method:"POST",
             headers:{
@@ -421,7 +421,7 @@ function loadSavedPage() {
 function savePDFProgress() {
 
     fetch(
-        "http://localhost/sms/backend/progress/save_pdf_progress.php",
+        "/backend/progress/save_pdf_progress.php",
         {
             method:"POST",
             headers:{
@@ -446,7 +446,7 @@ function savePDFProgress() {
 function loadProgress() {
 
     fetch(
-        "http://localhost/sms/backend/progress/get_progress.php",
+        "/backend/progress/get_progress.php",
         {
             method:"POST",
             headers:{

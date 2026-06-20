@@ -149,7 +149,7 @@ function loadSubjects() {
     localStorage.getItem("user_id");
 
    fetch(
-    `http://localhost/sms/backend/subjects/get_subjects_with_progress.php?user_id=${user_id}`
+    `/backend/subjects/get_subjects_with_progress.php?user_id=${user_id}`
    )
 
     .then(res => res.json())
@@ -300,7 +300,7 @@ function checkSubjectDiagnostic(subject_id) {
     );
 
     fetch(
-`http://localhost/sms/backend/diagnostic/check_subject_diagnostic.php?user_id=${user_id}&subject_id=${subject_id}`
+`/backend/diagnostic/check_subject_diagnostic.php?user_id=${user_id}&subject_id=${subject_id}`
     )
 
     .then(res => res.json())

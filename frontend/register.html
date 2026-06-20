@@ -145,7 +145,7 @@ function register() {
     formData.append("password", password);
 
     fetch(
-        "http://localhost/sms/backend/auth/register.php",
+        "/backend/auth/register.php",
         {
             method:"POST",
             body:formData

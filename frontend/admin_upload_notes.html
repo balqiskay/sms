@@ -47,7 +47,7 @@
 
 function loadTopics() {
 
-    fetch("http://localhost/sms/backend/topics/get_all_topics.php")
+    fetch("/backend/topics/get_all_topics.php")
     .then(res => res.json())
     .then(data => {
 
@@ -66,7 +66,7 @@ function loadTopics() {
 
 function loadUploadedNotes() {
 
-    fetch("http://localhost/sms/backend/admin/get_uploaded_notes.php")
+    fetch("/backend/admin/get_uploaded_notes.php")
     .then(res => res.json())
     .then(data => {
 
@@ -130,7 +130,7 @@ function uploadPDF() {
     formData.append("pdf", file);
 
     fetch(
-        "http://localhost/sms/backend/admin/upload_notes.php",
+        "/backend/admin/upload_notes.php",
         {
             method: "POST",
             body: formData
@@ -159,7 +159,7 @@ function uploadPDF() {
 function viewPDF(topic_id) {
 
     window.open(
-        "http://localhost/sms/backend/get_pdf.php?topic_id=" + topic_id,
+        "/backend/get_pdf.php?topic_id=" + topic_id,
         "_blank"
     );
 }
@@ -171,7 +171,7 @@ function deletePDF(topic_id) {
     }
 
     fetch(
-        "http://localhost/sms/backend/admin/delete_notes_pdf.php",
+        "/backend/admin/delete_notes_pdf.php",
         {
             method: "POST",
 

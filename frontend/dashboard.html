@@ -244,7 +244,7 @@ function startQuiz() {
     if (last_topic_id) {
         
         fetch(
-            `http://localhost/sms/backend/topics/get_topic_subject.php?topic_id=${last_topic_id}`
+            `/backend/topics/get_topic_subject.php?topic_id=${last_topic_id}`
         )
 
         .then(res => res.json())
@@ -302,7 +302,7 @@ function loadDashboardStats() {
     }
 
     fetch(
-`http://localhost/sms/backend/dashboard/get_dashboard_stats.php?user_id=${user_id}`
+`/backend/dashboard/get_dashboard_stats.php?user_id=${user_id}`
     )
 
     .then(res => res.json())
@@ -383,7 +383,7 @@ function loadLearningProfile() {
         localStorage.getItem("user_id");
 
     fetch(
-`http://localhost/sms/backend/dashboard/get_learning_profile.php?user_id=${user_id}`
+`/backend/dashboard/get_learning_profile.php?user_id=${user_id}`
     )
 
     .then(res => res.json())
@@ -580,7 +580,7 @@ function loadOverallProfile() {
         localStorage.getItem("user_id");
 
     fetch(
-`http://localhost/sms/backend/dashboard/get_overall_profile.php?user_id=${user_id}`
+`/backend/dashboard/get_overall_profile.php?user_id=${user_id}`
     )
 
     .then(res => res.json())
@@ -702,7 +702,7 @@ function loadRecentLearning(days) {
         localStorage.getItem("user_id");
 
     fetch(
-`http://localhost/sms/backend/dashboard/get_recent_learning.php?user_id=${user_id}&days=${days}`
+`/backend/dashboard/get_recent_learning.php?user_id=${user_id}&days=${days}`
     )
 
     .then(res => res.json())

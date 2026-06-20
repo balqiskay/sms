@@ -210,7 +210,7 @@ loadSections();
 
 function loadTopics() {
 
-    fetch("http://localhost/sms/backend/topics/get_all_topics.php")
+    fetch("/backend/topics/get_all_topics.php")
 
     .then(res => res.json())
 
@@ -238,7 +238,7 @@ function loadTopics() {
 
 function loadSections() {
 
-    fetch("http://localhost/sms/backend/admin/get_all_lesson_sections.php")
+    fetch("/backend/admin/get_all_lesson_sections.php")
 
     .then(res => res.json())
 
@@ -378,7 +378,7 @@ function saveSection() {
     }
 
     fetch(
-        "http://localhost/sms/backend/admin/add_lesson_section.php",
+        "/backend/admin/add_lesson_section.php",
         {
             method: "POST",
 
@@ -483,7 +483,7 @@ function confirmEditSection() {
     }
 
     fetch(
-        "http://localhost/sms/backend/admin/update_lesson_section.php",
+        "/backend/admin/update_lesson_section.php",
         {
             method: "POST",
 
@@ -542,7 +542,7 @@ function closeDeleteModal() {
 function confirmDeleteSection() {
 
     fetch(
-        "http://localhost/sms/backend/admin/delete_lesson_section.php",
+        "/backend/admin/delete_lesson_section.php",
         {
             method: "POST",
 

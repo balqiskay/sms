@@ -65,7 +65,7 @@ href="style.css?v=999">
 function loadSubjects() {
 
     fetch(
-    "http://localhost/sms/backend/subjects/get_subjects.php"
+    "/backend/subjects/get_subjects.php"
     )
 
     .then(res => res.json())
@@ -161,7 +161,7 @@ function addSubject() {
         ).value;
 
     fetch(
-        "http://localhost/sms/backend/admin/add_subject.php",
+        "/backend/admin/add_subject.php",
         {
             method: "POST",
 
@@ -247,7 +247,7 @@ function confirmEditSubject() {
     }
 
     fetch(
-        "http://localhost/sms/backend/admin/update_subject.php",
+        "/backend/admin/update_subject.php",
         {
             method: "POST",
 
@@ -300,7 +300,7 @@ function closeDeleteModal() {
 function confirmDeleteSubject() {
 
     fetch(
-        "http://localhost/sms/backend/admin/delete_subject.php",
+        "/backend/admin/delete_subject.php",
         {
             method: "POST",
 

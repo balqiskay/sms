@@ -181,7 +181,7 @@ loadSubjects();
 
 function loadSubjects() {
 
-    fetch("http://localhost/sms/backend/subjects/get_subjects.php")
+    fetch("/backend/subjects/get_subjects.php")
     .then(res => res.json())
     .then(data => {
 
@@ -224,7 +224,7 @@ function loadTopicsBySubject() {
     }
 
     fetch(
-`http://localhost/sms/backend/admin/get_topics_by_subject.php?subject_id=${subject_id}`
+`/backend/admin/get_topics_by_subject.php?subject_id=${subject_id}`
     )
     .then(res => res.json())
     .then(data => {
@@ -248,7 +248,7 @@ function loadQuestions() {
     }
 
     fetch(
-`http://localhost/sms/backend/admin/get_questions_by_topic.php?topic_id=${topic_id}`
+`/backend/admin/get_questions_by_topic.php?topic_id=${topic_id}`
     )
     .then(res => res.json())
     .then(data => {
@@ -388,7 +388,7 @@ function addQuestion() {
     }
 
     fetch(
-        "http://localhost/sms/backend/admin/add_question.php",
+        "/backend/admin/add_question.php",
         {
             method: "POST",
 
@@ -457,7 +457,7 @@ function confirmEditQuestion() {
     }
 
     fetch(
-        "http://localhost/sms/backend/admin/update_question.php",
+        "/sms/backend/admin/update_question.php",
         {
             method: "POST",
 
@@ -507,7 +507,7 @@ function closeDeleteModal() {
 function confirmDeleteQuestion() {
 
     fetch(
-        "http://localhost/sms/backend/admin/delete_question.php",
+        "/backend/admin/delete_question.php",
         {
             method: "POST",
 

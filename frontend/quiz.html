@@ -76,7 +76,7 @@ let answers = {};
 
 // LOAD QUESTIONS
 fetch(
-`http://localhost/sms/backend/quiz/get_questions.php?topic_id=${topic_id}`
+`/backend/quiz/get_questions.php?topic_id=${topic_id}`
 )
 
 .then(res => res.json())
@@ -206,7 +206,7 @@ function submitQuiz() {
     }
 
     fetch(
-        "http://localhost/sms/backend/quiz/submit_quiz.php",
+        "/backend/quiz/submit_quiz.php",
         {
             method:"POST",
 
@@ -239,7 +239,7 @@ function submitQuiz() {
 
         // CHECK COMPLETION
         fetch(
-            "http://localhost/sms/backend/progress/check_completion.php",
+            "/backend/progress/check_completion.php",
         {
             method:"POST",
             

@@ -146,7 +146,7 @@ loadTopics();
 function loadSubjects() {
 
     fetch(
-        "http://localhost/sms/backend/subjects/get_subjects.php"
+        "/backend/subjects/get_subjects.php"
     )
 
     .then(res => res.json())
@@ -176,7 +176,7 @@ function loadSubjects() {
 function loadTopics() {
 
     fetch(
-        "http://localhost/sms/backend/topics/get_all_topics.php"
+        "/backend/topics/get_all_topics.php"
     )
 
     .then(res => res.json())
@@ -291,7 +291,7 @@ function addTopic() {
     }
 
     fetch(
-        "http://localhost/sms/backend/admin/add_topic.php",
+        "/backend/admin/add_topic.php",
         {
             method: "POST",
 
@@ -360,7 +360,7 @@ function confirmEditTopic() {
     }
 
     fetch(
-        "http://localhost/sms/backend/admin/update_topic.php",
+        "/backend/admin/update_topic.php",
         {
             method: "POST",
 
@@ -414,7 +414,7 @@ function closeDeleteModal() {
 function confirmDeleteTopic() {
 
     fetch(
-        "http://localhost/sms/backend/admin/delete_topic.php",
+        "/backend/admin/delete_topic.php",
         {
             method: "POST",
 
