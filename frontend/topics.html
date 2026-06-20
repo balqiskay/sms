@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Topics</title>
+<meta charset="UTF-8">
+
+<link rel="stylesheet" href="style.css?v=999">
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css"/>
+
+</head>
+
+<body>
+
+<div class="topbar">
+    <h3>SMART TRACK SPM</h3>
+
+    <button onclick="logout()">
+        Logout
+    </button>
+</div>
+
+<div class="sidebar">
+    <a href="dashboard.html">🏠 Dashboard</a>
+    <a href="subjects.html">📚 Subjects</a>
+    <a href="#" class="active">📘 Topics</a>
+    <a href="#" onclick="goQuizSidebar()">📝 Quiz</a>
+</div>
+
+<div class="main">
+
+    <h1 data-aos="fade-right">
+        📘 Topics
+    </h1>
+
+    <p data-aos="fade-right" data-aos-delay="100">
+        Choose a topic to start learning, continue reading notes, or test your understanding.
+    </p>
+
+    <br>
+
+    <div class="grid" id="topicsContainer">
+
+        <div class="card">
+            <p>Loading topics...</p>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+
+AOS.init({
+    duration: 700
+});
+
+const params =
+    new URLSearchParams(window.location.search);
+
+let subject_id =
+    params.get("subject_id");
+
+if (!subject_id) {
+    subject_id =
+        localStorage.getItem("subject_id");
+}
+
+if (!subject_id) {
+
+    alert("Please select a subject first");
+
+    window.location.href =
+        "subjects.html";
+}
+
+localStorage.setItem(
+    "subject_id",
+    subject_id
+);
+
+loadTopics();
+
+function loadTopics() {
+
+    const user_id =
+        localStorage.getItem("user_id");
+
+    fetch(
+`http://localhost/sms/backend/topics/get_topics.php?subject_id=${subject_id}&user_id=${user_id}`
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const container =
+            document.getElementById("topicsContainer");
+
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+
+            container.innerHTML = `
+
+                <div class="card fade">
+
+                    <h2>📘 No Topics Available</h2>
+
+                    <p>
+                        Topics for this subject will be added soon.
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+        data.forEach((topic, index) => {
+
+            const progress =
+                topic.progress_percent
+                ? topic.progress_percent
+                : 0;
+
+            let statusText = "Not Started";
+            let statusClass = "status-none";
+
+            if (progress > 0 && progress < 100) {
+                statusText = "In Progress";
+                statusClass = "status-progress";
+            }
+
+            if (progress >= 100) {
+                statusText = "Completed";
+                statusClass = "status-complete";
+            }
+
+            container.innerHTML += `
+
+                <div class="card fade topic-card"
+                     data-aos="fade-up"
+                     data-aos-delay="${index * 100}">
+
+                    <div class="topic-top">
+
+                        <div class="topic-icon">
+                            📘
+                        </div>
+
+                        <span class="topic-status ${statusClass}">
+                            ${statusText}
+                        </span>
+
+                    </div>
+
+                    <h2>
+                        ${topic.topic_name}
+                    </h2>
+
+                    <p>
+                        Read PDF notes, track progress, and attempt quizzes for this topic.
+                    </p>
+
+                    <div class="progress">
+                        <div class="progress-bar"
+                             style="width:${progress}%">
+                        </div>
+                    </div>
+
+                    <p class="topic-progress-text">
+                        ${progress}% Completed
+                    </p>
+
+                    <br>
+
+                    <div class="topic-actions">
+                        
+                        <button onclick="goNotes(${topic.topic_id})">
+                            ${
+                            progress > 0
+                            ? "Continue Learning"
+                            : "Start Learning"
+                            }
+                        </button>
+
+                        <button class="btn-secondary" onclick="goQuiz(${topic.topic_id})">
+                            Take Quiz
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `;
+        });
+
+        AOS.refresh();
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        document.getElementById("topicsContainer").innerHTML = `
+
+            <div class="card">
+                <h2>Error loading topics</h2>
+            </div>
+
+        `;
+    });
+}
+
+function goNotes(topic_id) {
+
+    localStorage.setItem(
+        "topic_id",
+        topic_id
+    );
+
+    localStorage.setItem(
+        "last_topic_id",
+        topic_id
+    );
+
+    window.location.href =
+        "notes.html?topic_id=" + topic_id;
+}
+
+function goQuiz(topic_id) {
+
+    localStorage.setItem(
+        "topic_id",
+        topic_id
+    );
+
+    localStorage.setItem(
+        "last_topic_id",
+        topic_id
+    );
+
+    window.location.href =
+        "quiz.html?topic_id=" + topic_id;
+}
+
+function goQuizSidebar() {
+
+    const topic_id =
+        localStorage.getItem("topic_id");
+
+    if (!topic_id) {
+
+        alert("Please open a topic first");
+
+        return;
+    }
+
+    window.location.href =
+        "quiz.html?topic_id=" + topic_id;
+}
+
+function logout() {
+
+    localStorage.clear();
+
+    window.location.href =
+        "login.html";
+}
+
+</script>
+
+</body>
+</html>

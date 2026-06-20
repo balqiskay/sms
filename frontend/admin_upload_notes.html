@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Manage Notes PDF</title>
+<meta charset="UTF-8">
+
+<link rel="stylesheet" href="style.css?v=999">
+</head>
+
+<body>
+
+<div class="topbar">
+    <h3>SMART TRACK SPM - Admin</h3>
+    <button onclick="logout()">Logout</button>
+</div>
+
+<div class="admin-page">
+
+    <h1 class="page-title">📄 Notes PDF Management</h1>
+
+    <div class="card admin-form">
+
+        <select id="topic_id">
+            <option value="">Select Topic</option>
+        </select>
+
+        <input
+            type="file"
+            id="pdfFile"
+            accept=".pdf">
+
+        <button onclick="uploadPDF()">
+            Upload / Replace PDF
+        </button>
+
+    </div>
+
+    <br><br>
+
+    <div id="notesContainer" class="grid">
+        <div class="card">Loading uploaded PDFs...</div>
+    </div>
+
+</div>
+
+<script>
+
+function loadTopics() {
+
+    fetch("http://localhost/sms/backend/topics/get_all_topics.php")
+    .then(res => res.json())
+    .then(data => {
+
+        const select = document.getElementById("topic_id");
+
+        data.forEach(topic => {
+
+            select.innerHTML += `
+                <option value="${topic.topic_id}">
+                    ${topic.topic_name}
+                </option>
+            `;
+        });
+    });
+}
+
+function loadUploadedNotes() {
+
+    fetch("http://localhost/sms/backend/admin/get_uploaded_notes.php")
+    .then(res => res.json())
+    .then(data => {
+
+        const container =
+            document.getElementById("notesContainer");
+
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+            container.innerHTML = `
+                <div class="card">
+                    <h2>No PDFs Uploaded Yet</h2>
+                </div>
+            `;
+            return;
+        }
+
+        data.forEach(note => {
+
+            container.innerHTML += `
+                <div class="card fade">
+
+                    <h2>${note.topic_name}</h2>
+
+                    <p>
+                        Topic ID: ${note.topic_id}
+                    </p>
+
+                    <br>
+
+                    <button onclick="viewPDF(${note.topic_id})">
+                        👁 View PDF
+                    </button>
+
+                    <button onclick="deletePDF(${note.topic_id})">
+                        🗑 Delete PDF
+                    </button>
+
+                </div>
+            `;
+        });
+    });
+}
+
+function uploadPDF() {
+
+    const topic_id =
+        document.getElementById("topic_id").value;
+
+    const file =
+        document.getElementById("pdfFile").files[0];
+
+    if (!topic_id || !file) {
+        alert("Please select topic and PDF");
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("topic_id", topic_id);
+    formData.append("pdf", file);
+
+    fetch(
+        "http://localhost/sms/backend/admin/upload_notes.php",
+        {
+            method: "POST",
+            body: formData
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.status === "success") {
+
+            alert("PDF uploaded / replaced!");
+
+            document.getElementById("pdfFile").value = "";
+
+            loadUploadedNotes();
+
+        } else {
+
+            alert("Upload failed");
+        }
+    });
+}
+
+function viewPDF(topic_id) {
+
+    window.open(
+        "http://localhost/sms/backend/get_pdf.php?topic_id=" + topic_id,
+        "_blank"
+    );
+}
+
+function deletePDF(topic_id) {
+
+    if (!confirm("Delete this PDF?")) {
+        return;
+    }
+
+    fetch(
+        "http://localhost/sms/backend/admin/delete_notes_pdf.php",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                topic_id: topic_id
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.status === "success") {
+
+            alert("PDF deleted!");
+
+            loadUploadedNotes();
+
+        } else {
+
+            alert("Failed to delete PDF");
+        }
+    });
+}
+
+function logout() {
+
+    localStorage.clear();
+
+    window.location.href =
+        "login.html";
+}
+
+loadTopics();
+loadUploadedNotes();
+
+</script>
+
+</body>
+</html>

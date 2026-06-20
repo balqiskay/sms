@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Subjects</title>
+<meta charset="UTF-8">
+
+<link rel="stylesheet" href="style.css?v=999">
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css"/>
+
+</head>
+
+<body>
+
+<div class="topbar premium-topbar">
+
+    <div class="brand-block">
+        <div class="brand-logo">🧠</div>
+
+        <div>
+            <h3>SMART TRACK SPM</h3>
+            <span>Adaptive Learning System</span>
+        </div>
+    </div>
+
+    <button class="logout-pill" onclick="logout()">
+        🚪 Logout
+    </button>
+
+</div>
+
+<div class="sidebar premium-sidebar">
+
+    <div class="sidebar-profile">
+        <div class="profile-avatar">
+            🎓
+        </div>
+
+        <div>
+            <h4>Student Portal</h4>
+            <p>SPM Learning Hub</p>
+        </div>
+    </div>
+
+    <div class="sidebar-section-title">
+        LEARNING
+    </div>
+
+    <a href="dashboard.html">
+        <span>🏠</span> Dashboard
+    </a>
+
+    <a href="subjects.html" class="active">
+        <span>📚</span> Subjects
+    </a>
+
+    <a href="#" onclick="goTopicsSidebar()">
+        <span>📘</span> Topics
+    </a>
+
+    <a href="#" onclick="goQuizSidebar()">
+        <span>📝</span> Quiz
+    </a>
+
+</div>
+
+<div class="main">
+
+    <div class="subjects-hero" data-aos="fade-up">
+
+        <div>
+
+            <span class="hero-badge">
+                📚 Subject Library
+            </span>
+
+            <h1>
+                Choose Your Learning Path
+            </h1>
+
+            <p>
+                Select a subject to unlock personalised diagnostics, learning notes, quizzes, and progress tracking.
+            </p>
+
+        </div>
+
+        <div class="subjects-hero-card">
+
+            <span>Next Step</span>
+
+            <h2>
+                Start Diagnostic
+            </h2>
+
+            <p>
+                Your first subject opens a short quiz to discover your current level.
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="subject-quick-stats">
+        
+        <div>
+            <span>📚</span>
+            <h3 id="subjectTotal">0</h3>
+            <p>Subjects</p>
+        </div>
+
+        <div>
+            <span>📘</span>
+            <h3 id="topicTotal">0</h3>
+            <p>Total Topics</p>
+        </div>
+
+        <div>
+            <span>🏆</span>
+            <h3 id="completedTotal">0</h3>
+            <p>Completed</p>
+        </div>
+
+    </div>
+
+    <br>
+
+    <div class="subjects-grid" id="subjectsContainer">
+
+        <div class="card">
+            <p>Loading subjects...</p>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+
+AOS.init({
+    duration: 700
+});
+
+loadSubjects();
+
+function loadSubjects() {
+
+   const user_id =
+    localStorage.getItem("user_id");
+
+   fetch(
+    `http://localhost/sms/backend/subjects/get_subjects_with_progress.php?user_id=${user_id}`
+   )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const container =
+            document.getElementById("subjectsContainer");
+
+        container.innerHTML = "";
+
+        let totalSubjects = data.length;
+        let totalTopicsAll = 0;
+        let completedTopicsAll = 0;
+
+        data.forEach(subject => {
+            totalTopicsAll += parseInt(subject.total_topics || 0);
+            completedTopicsAll += parseInt(subject.completed_topics || 0);
+        });
+
+        document.getElementById("subjectTotal").innerText = totalSubjects;
+
+        document.getElementById("topicTotal").innerText = totalTopicsAll;
+
+        document.getElementById("completedTotal").innerText = completedTopicsAll;
+
+        if (data.length === 0) {
+
+            container.innerHTML = `
+                <div class="card">
+                    <h2>No Subjects Available</h2>
+                    <p>Please contact the administrator.</p>
+                </div>
+            `;
+
+            return;
+        }
+
+        data.forEach((subject, index) => {
+
+            const icons = [
+                "🧮",
+                "🔬",
+                "📖",
+                "🌍",
+                "💻",
+                "🧪"
+            ];
+
+            const icon = icons[index % icons.length];
+
+            const progress = subject.progress_percent || 0;
+
+            const totalTopics = subject.total_topics || 0;
+
+            const completedTopics = subject.completed_topics || 0;
+
+            const buttonText =
+            progress > 0
+            ? "▶ Continue Learning"
+            : "🚀 Start Learning";
+
+            container.innerHTML += `
+
+            <div class="card fade topic-card subject-topic-style-card"
+            data-aos="fade-up"
+            data-aos-delay="${index * 100}">
+            
+            <div class="topic-top">
+                
+                <div class="topic-icon">
+                    ${icon}
+                </div>
+
+                <span class="topic-status ${
+                progress >= 100
+                ? "status-complete"
+                : progress > 0
+                ? "status-progress"
+                : "status-none"
+                }">
+                ${
+                progress >= 100
+                ? "Completed"
+                : progress > 0
+                ? "In Progress"
+                : "Not Started"
+                }
+                </span>
+
+            </div>
+            
+            <h2>
+                ${subject.subject_name}
+            </h2>
+
+            <p>
+                Personalised diagnostics, learning notes, quizzes and progress tracking.
+            </p>
+
+            <div class="progress">
+                <div class="progress-bar"
+                style="width:${progress}%">
+                </div>
+            </div>
+
+            <p class="topic-progress-text">
+                ${completedTopics} of ${totalTopics} Topics Completed
+            </p>
+
+            <div class="topic-actions">
+                
+                <button onclick="checkSubjectDiagnostic(${subject.subject_id})">
+                    ${buttonText}
+                </button>
+
+            </div>
+
+        </div>
+
+        `;
+        });
+
+        AOS.refresh();
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        document.getElementById("subjectsContainer").innerHTML = `
+            <div class="card">
+                <h2>Error loading subjects</h2>
+                <p>Please try again later.</p>
+            </div>
+        `;
+    });
+}
+
+function checkSubjectDiagnostic(subject_id) {
+
+    const user_id =
+        localStorage.getItem("user_id");
+
+    localStorage.setItem(
+        "subject_id",
+        subject_id
+    );
+
+    fetch(
+`http://localhost/sms/backend/diagnostic/check_subject_diagnostic.php?user_id=${user_id}&subject_id=${subject_id}`
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.done === true) {
+
+            window.location.href =
+                "topics.html?subject_id=" + subject_id;
+
+        } else {
+
+            window.location.href =
+                "diagnostic_quiz.html?subject_id=" + subject_id;
+        }
+    });
+}
+
+function goTopicsSidebar() {
+
+    const subject_id =
+        localStorage.getItem("subject_id");
+
+    if (!subject_id) {
+
+        alert("Please select a subject first");
+
+        return;
+    }
+
+    window.location.href =
+        "topics.html?subject_id=" + subject_id;
+}
+
+function goQuizSidebar() {
+
+    const topic_id =
+        localStorage.getItem("topic_id");
+
+    if (!topic_id) {
+        alert("Please open a topic first");
+        return;
+    }
+
+    window.location.href =
+        "quiz.html?topic_id=" + topic_id;
+}
+
+function logout() {
+
+    localStorage.clear();
+
+    window.location.href =
+        "login.html";
+}
+
+</script>
+
+</body>
+</html>

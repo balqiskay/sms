@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Question Bank</title>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="style.css?v=999">
+</head>
+
+<body>
+
+<div class="topbar">
+    <h3>SMART TRACK SPM - Admin</h3>
+    <button onclick="logout()">Logout</button>
+</div>
+
+<div class="admin-page">
+
+    <h1 class="page-title">📝 Question Bank</h1>
+
+    <p class="dashboard-subtitle">
+        Select a subject and topic before managing quiz questions.
+    </p>
+
+    <div class="card admin-form">
+
+        <h2>📚 Select Topic</h2>
+
+        <label>Subject</label>
+        <select id="subjectFilter" onchange="loadTopicsBySubject()">
+            <option value="">Select Subject</option>
+        </select>
+
+        <label>Topic</label>
+        <select id="topicFilter" onchange="loadQuestions()">
+            <option value="">Select Topic</option>
+        </select>
+
+    </div>
+
+    <br><br>
+
+    <div class="card admin-form">
+
+        <h2>➕ Add Question</h2>
+
+        <label>Question</label>
+        <textarea id="question" placeholder="Enter question"></textarea>
+
+        <label>Option A</label>
+        <input type="text" id="a" placeholder="Option A">
+
+        <label>Option B</label>
+        <input type="text" id="b" placeholder="Option B">
+
+        <label>Option C</label>
+        <input type="text" id="c" placeholder="Option C">
+
+        <label>Option D</label>
+        <input type="text" id="d" placeholder="Option D">
+
+        <label>Correct Answer</label>
+        <select id="correct">
+            <option value="A">Correct Answer: A</option>
+            <option value="B">Correct Answer: B</option>
+            <option value="C">Correct Answer: C</option>
+            <option value="D">Correct Answer: D</option>
+        </select>
+
+        <div class="diagnostic-row">
+            <input type="checkbox" id="is_diagnostic">
+            <span>Use this question for Diagnostic Quiz</span>
+        </div>
+
+        <button onclick="addQuestion()">Save Question</button>
+
+    </div>
+
+    <br><br>
+
+    <h2>📚 Questions</h2>
+
+    <br>
+
+    <div id="questionsContainer" class="admin-list">
+        <div class="admin-list-item">
+            <div class="admin-list-info">
+                <h2>Select a topic first</h2>
+                <p class="small-muted">
+                    Questions will appear here after you choose a subject and topic.
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal-overlay">
+
+    <div class="modal-box modal-large">
+
+        <div class="modal-icon">✏️</div>
+
+        <h2>Edit Question</h2>
+
+        <p>Update the question details below.</p>
+
+        <br>
+
+        <label>Question</label>
+        <textarea id="edit_question"></textarea>
+
+        <label>Option A</label>
+        <input type="text" id="edit_a">
+
+        <label>Option B</label>
+        <input type="text" id="edit_b">
+
+        <label>Option C</label>
+        <input type="text" id="edit_c">
+
+        <label>Option D</label>
+        <input type="text" id="edit_d">
+
+        <label>Correct Answer</label>
+        <select id="edit_correct">
+            <option value="A">Correct Answer: A</option>
+            <option value="B">Correct Answer: B</option>
+            <option value="C">Correct Answer: C</option>
+            <option value="D">Correct Answer: D</option>
+        </select>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" onclick="closeEditModal()">
+                Cancel
+            </button>
+
+            <button type="button" onclick="confirmEditQuestion()">
+                Save Changes
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- DELETE MODAL -->
+<div id="deleteModal" class="modal-overlay">
+
+    <div class="modal-box">
+
+        <div class="modal-icon">⚠️</div>
+
+        <h2>Confirm Delete</h2>
+
+        <p>
+            This question will be permanently deleted.
+            This action cannot be undone.
+        </p>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" onclick="closeDeleteModal()">
+                Cancel
+            </button>
+
+            <button type="button" class="btn-danger" onclick="confirmDeleteQuestion()">
+                Delete
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+let editQuestionId = null;
+let deleteQuestionId = null;
+
+loadSubjects();
+
+function loadSubjects() {
+
+    fetch("http://localhost/sms/backend/subjects/get_subjects.php")
+    .then(res => res.json())
+    .then(data => {
+
+        const select = document.getElementById("subjectFilter");
+
+        select.innerHTML = `
+            <option value="">Select Subject</option>
+        `;
+
+        data.forEach(subject => {
+            select.innerHTML += `
+                <option value="${subject.subject_id}">
+                    ${subject.subject_name}
+                </option>
+            `;
+        });
+    });
+}
+
+function loadTopicsBySubject() {
+
+    const subject_id = document.getElementById("subjectFilter").value;
+    const topicSelect = document.getElementById("topicFilter");
+
+    topicSelect.innerHTML = `
+        <option value="">Select Topic</option>
+    `;
+
+    document.getElementById("questionsContainer").innerHTML = `
+        <div class="admin-list-item">
+            <div class="admin-list-info">
+                <h2>Select a topic first</h2>
+                <p class="small-muted">Questions will appear here.</p>
+            </div>
+        </div>
+    `;
+
+    if (!subject_id) {
+        return;
+    }
+
+    fetch(
+`http://localhost/sms/backend/admin/get_topics_by_subject.php?subject_id=${subject_id}`
+    )
+    .then(res => res.json())
+    .then(data => {
+
+        data.forEach(topic => {
+            topicSelect.innerHTML += `
+                <option value="${topic.topic_id}">
+                    ${topic.topic_name}
+                </option>
+            `;
+        });
+    });
+}
+
+function loadQuestions() {
+
+    const topic_id = document.getElementById("topicFilter").value;
+
+    if (!topic_id) {
+        return;
+    }
+
+    fetch(
+`http://localhost/sms/backend/admin/get_questions_by_topic.php?topic_id=${topic_id}`
+    )
+    .then(res => res.json())
+    .then(data => {
+
+        const container = document.getElementById("questionsContainer");
+
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+
+            container.innerHTML = `
+                <div class="admin-list-item">
+                    <div class="admin-list-info">
+                        <h2>No Questions Yet</h2>
+                        <p class="small-muted">
+                            Add your first question for this topic.
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            return;
+        }
+
+        data.forEach(q => {
+
+            const diagnosticText =
+                q.is_diagnostic === "t" || q.is_diagnostic === true
+                ? "Diagnostic"
+                : "Topic Quiz";
+
+            const diagnosticClass =
+                diagnosticText === "Diagnostic"
+                ? "badge-diagnostic"
+                : "badge-normal";
+
+            container.innerHTML += `
+
+                <div class="admin-list-item question-item">
+
+                    <div class="admin-list-info">
+
+                        <div class="question-header">
+
+                            <h2>${q.topic_name}</h2>
+
+                            <span class="question-badge ${diagnosticClass}">
+                                ${diagnosticText}
+                            </span>
+
+                        </div>
+
+                        <div class="subject-meta">
+
+                            <span class="meta-label">Question ID</span>
+                            <span class="meta-value">#${q.question_id}</span>
+
+                            <span class="meta-label">Correct</span>
+                            <span class="meta-value">${q.correct_answer}</span>
+
+                        </div>
+
+                        <p class="question-text">
+                            ${q.question_text}
+                        </p>
+
+                        <div class="option-grid">
+
+                            <div class="option-box">
+                                <b>A</b> ${q.option_a}
+                            </div>
+
+                            <div class="option-box">
+                                <b>B</b> ${q.option_b}
+                            </div>
+
+                            <div class="option-box">
+                                <b>C</b> ${q.option_c}
+                            </div>
+
+                            <div class="option-box">
+                                <b>D</b> ${q.option_d}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="admin-actions">
+
+                        <button
+                            class="btn-edit"
+                            onclick="openEditModal(
+                                ${q.question_id},
+                                '${escapeJS(q.question_text)}',
+                                '${escapeJS(q.option_a)}',
+                                '${escapeJS(q.option_b)}',
+                                '${escapeJS(q.option_c)}',
+                                '${escapeJS(q.option_d)}',
+                                '${escapeJS(q.correct_answer)}'
+                            )">
+                            ✏ Edit
+                        </button>
+
+                        <button
+                            class="btn-delete"
+                            onclick="openDeleteModal(${q.question_id})">
+                            🗑 Delete
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+        });
+    });
+}
+
+function addQuestion() {
+
+    const topic_id = document.getElementById("topicFilter").value;
+
+    const question = document.getElementById("question").value.trim();
+    const option_a = document.getElementById("a").value.trim();
+    const option_b = document.getElementById("b").value.trim();
+    const option_c = document.getElementById("c").value.trim();
+    const option_d = document.getElementById("d").value.trim();
+
+    if (!topic_id) {
+        alert("Please select a topic first.");
+        return;
+    }
+
+    if (!question || !option_a || !option_b || !option_c || !option_d) {
+        alert("Please fill in question and all answer options.");
+        return;
+    }
+
+    fetch(
+        "http://localhost/sms/backend/admin/add_question.php",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                topic_id: topic_id,
+                question_text: question,
+                option_a: option_a,
+                option_b: option_b,
+                option_c: option_c,
+                option_d: option_d,
+                correct_answer: document.getElementById("correct").value,
+                is_diagnostic: document.getElementById("is_diagnostic").checked
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.status === "success") {
+            clearForm();
+            loadQuestions();
+        } else {
+            alert("Failed to add question.");
+        }
+    });
+}
+
+function openEditModal(question_id, question_text, option_a, option_b, option_c, option_d, correct_answer) {
+
+    editQuestionId = question_id;
+
+    document.getElementById("edit_question").value = question_text;
+    document.getElementById("edit_a").value = option_a;
+    document.getElementById("edit_b").value = option_b;
+    document.getElementById("edit_c").value = option_c;
+    document.getElementById("edit_d").value = option_d;
+    document.getElementById("edit_correct").value = correct_answer;
+
+    document.getElementById("editModal").style.display = "flex";
+}
+
+function closeEditModal() {
+
+    editQuestionId = null;
+
+    document.getElementById("editModal").style.display = "none";
+}
+
+function confirmEditQuestion() {
+
+    const question = document.getElementById("edit_question").value.trim();
+    const option_a = document.getElementById("edit_a").value.trim();
+    const option_b = document.getElementById("edit_b").value.trim();
+    const option_c = document.getElementById("edit_c").value.trim();
+    const option_d = document.getElementById("edit_d").value.trim();
+
+    if (!question || !option_a || !option_b || !option_c || !option_d) {
+        alert("Please fill in all fields.");
+        return;
+    }
+
+    fetch(
+        "http://localhost/sms/backend/admin/update_question.php",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                question_id: editQuestionId,
+                question_text: question,
+                option_a: option_a,
+                option_b: option_b,
+                option_c: option_c,
+                option_d: option_d,
+                correct_answer: document.getElementById("edit_correct").value
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.status === "success") {
+            closeEditModal();
+            loadQuestions();
+        } else {
+            alert("Failed to update question.");
+        }
+    });
+}
+
+function openDeleteModal(question_id) {
+
+    deleteQuestionId = question_id;
+
+    document.getElementById("deleteModal").style.display = "flex";
+}
+
+function closeDeleteModal() {
+
+    deleteQuestionId = null;
+
+    document.getElementById("deleteModal").style.display = "none";
+}
+
+function confirmDeleteQuestion() {
+
+    fetch(
+        "http://localhost/sms/backend/admin/delete_question.php",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                question_id: deleteQuestionId
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.status === "success") {
+            closeDeleteModal();
+            loadQuestions();
+        } else {
+            alert("Failed to delete question.");
+        }
+    });
+}
+
+function clearForm() {
+
+    document.getElementById("question").value = "";
+    document.getElementById("a").value = "";
+    document.getElementById("b").value = "";
+    document.getElementById("c").value = "";
+    document.getElementById("d").value = "";
+    document.getElementById("is_diagnostic").checked = false;
+}
+
+function escapeJS(text) {
+
+    if (!text) {
+        return "";
+    }
+
+    return String(text)
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/"/g, "&quot;")
+        .replace(/\n/g, "\\n")
+        .replace(/\r/g, "");
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = "login.html";
+}
+
+</script>
+
+</body>
+</html>

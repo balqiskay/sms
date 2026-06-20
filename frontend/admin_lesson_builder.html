@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Lesson Builder</title>
+<meta charset="UTF-8">
+
+<link rel="stylesheet" href="style.css?v=999">
+</head>
+
+<body>
+
+<div class="topbar">
+    <h3>SMART TRACK SPM - Admin</h3>
+
+    <button onclick="logout()">
+        Logout
+    </button>
+</div>
+
+<div class="admin-page">
+
+    <h1 class="page-title">
+        🧩 Lesson Builder
+    </h1>
+
+    <p class="dashboard-subtitle">
+        Create structured lesson sections with explanations, examples, tips, warnings, and activities.
+    </p>
+
+    <!-- ADD FORM -->
+    <div class="card admin-form">
+
+        <h2>➕ Add Lesson Section</h2>
+
+        <label>Topic</label>
+        <select id="topic_id">
+            <option value="">Select Topic</option>
+        </select>
+
+        <label>Section Number</label>
+        <input
+            type="number"
+            id="section_no"
+            placeholder="Example: 1">
+
+        <label>Section Title</label>
+        <input
+            type="text"
+            id="title"
+            placeholder="Example: Introduction to Integers">
+
+        <label>Main Explanation</label>
+        <small>Write the main teaching content for this section.</small>
+        <textarea
+            id="explanation"
+            placeholder="Explain the concept clearly for students..."></textarea>
+
+        <hr>
+
+        <h2>🎨 Learning Blocks</h2>
+
+        <label>🟣 Example Box</label>
+        <textarea
+            id="example_text"
+            placeholder="Example content..."></textarea>
+
+        <label>💡 Tip Box</label>
+        <textarea
+            id="tip_text"
+            placeholder="Helpful tip..."></textarea>
+
+        <label>⚠ Warning Box</label>
+        <textarea
+            id="warning_text"
+            placeholder="Common mistake or warning..."></textarea>
+
+        <label>🧠 Activity Box</label>
+        <textarea
+            id="activity_text"
+            placeholder="Mini activity or practice question..."></textarea>
+
+        <button onclick="saveSection()">
+            Save Lesson Section
+        </button>
+
+    </div>
+
+    <br><br>
+
+    <h2>
+        📚 Existing Lesson Sections
+    </h2>
+
+    <br>
+
+    <div id="sectionsContainer" class="admin-list">
+
+        <div class="card">
+            Loading lesson sections...
+        </div>
+
+    </div>
+
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal-overlay">
+
+    <div class="modal-box modal-large">
+
+        <div class="modal-icon">✏️</div>
+
+        <h2>Edit Lesson Section</h2>
+
+        <p>
+            Update the lesson content below.
+        </p>
+
+        <br>
+
+        <label>Section Number</label>
+        <input
+            type="number"
+            id="edit_section_no">
+
+        <label>Section Title</label>
+        <input
+            type="text"
+            id="edit_title">
+
+        <label>Main Explanation</label>
+        <textarea id="edit_explanation"></textarea>
+
+        <label>Example Text</label>
+        <textarea id="edit_example_text"></textarea>
+
+        <label>Tip Text</label>
+        <textarea id="edit_tip_text"></textarea>
+
+        <label>Warning Text</label>
+        <textarea id="edit_warning_text"></textarea>
+
+        <label>Activity Text</label>
+        <textarea id="edit_activity_text"></textarea>
+
+        <div class="modal-actions">
+
+            <button
+                type="button"
+                class="btn-secondary"
+                onclick="closeEditModal()">
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                onclick="confirmEditSection()">
+                Save Changes
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- DELETE MODAL -->
+<div id="deleteModal" class="modal-overlay">
+
+    <div class="modal-box">
+
+        <div class="modal-icon">⚠️</div>
+
+        <h2>Confirm Delete</h2>
+
+        <p>
+            This lesson section will be permanently deleted.
+            This action cannot be undone.
+        </p>
+
+        <div class="modal-actions">
+
+            <button
+                type="button"
+                class="btn-secondary"
+                onclick="closeDeleteModal()">
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="btn-danger"
+                onclick="confirmDeleteSection()">
+                Delete
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+let editSectionId = null;
+let deleteSectionId = null;
+
+loadTopics();
+loadSections();
+
+function loadTopics() {
+
+    fetch("http://localhost/sms/backend/topics/get_all_topics.php")
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const select =
+            document.getElementById("topic_id");
+
+        select.innerHTML = `
+            <option value="">
+                Select Topic
+            </option>
+        `;
+
+        data.forEach(topic => {
+
+            select.innerHTML += `
+                <option value="${topic.topic_id}">
+                    ${topic.topic_name}
+                </option>
+            `;
+        });
+    });
+}
+
+function loadSections() {
+
+    fetch("http://localhost/sms/backend/admin/get_all_lesson_sections.php")
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const container =
+            document.getElementById("sectionsContainer");
+
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+
+            container.innerHTML = `
+
+                <div class="admin-list-item">
+
+                    <div class="admin-list-info">
+
+                        <h2>No Lesson Sections Yet</h2>
+
+                        <p class="small-muted">
+                            Add your first lesson section using the form above.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+        data.forEach(section => {
+
+            container.innerHTML += `
+
+                <div class="admin-list-item">
+
+                    <div class="admin-list-info">
+
+                        <h2>
+                            ${section.title}
+                        </h2>
+
+                        <div class="subject-meta">
+
+                            <span class="meta-label">
+                                Topic
+                            </span>
+
+                            <span class="meta-value">
+                                ${section.topic_name}
+                            </span>
+
+                            <span class="meta-label">
+                                Section
+                            </span>
+
+                            <span class="meta-value">
+                                #${section.section_no}
+                            </span>
+
+                        </div>
+
+                        <p class="lesson-preview">
+                            ${section.explanation}
+                        </p>
+
+                    </div>
+
+                    <div class="admin-actions">
+
+                        <button
+                            class="btn-edit"
+                            onclick="openEditModal(
+                                ${section.section_id},
+                                '${escapeJS(section.section_no)}',
+                                '${escapeJS(section.title)}',
+                                '${escapeJS(section.explanation)}',
+                                '${escapeJS(section.example_text)}',
+                                '${escapeJS(section.tip_text)}',
+                                '${escapeJS(section.warning_text)}',
+                                '${escapeJS(section.activity_text)}'
+                            )">
+                            ✏ Edit
+                        </button>
+
+                        <button
+                            class="btn-delete"
+                            onclick="openDeleteModal(${section.section_id})">
+                            🗑 Delete
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `;
+        });
+    });
+}
+
+function escapeJS(text) {
+
+    if (!text) {
+        return "";
+    }
+
+    return String(text)
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/"/g, "&quot;")
+        .replace(/\n/g, "\\n")
+        .replace(/\r/g, "");
+}
+
+function saveSection() {
+
+    const topic_id =
+        document.getElementById("topic_id").value;
+
+    const section_no =
+        document.getElementById("section_no").value;
+
+    const title =
+        document.getElementById("title").value.trim();
+
+    const explanation =
+        document.getElementById("explanation").value.trim();
+
+    if (!topic_id || !section_no || !title || !explanation) {
+
+        alert("Please fill in topic, section number, title and explanation.");
+
+        return;
+    }
+
+    fetch(
+        "http://localhost/sms/backend/admin/add_lesson_section.php",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                topic_id: topic_id,
+                section_no: section_no,
+                title: title,
+                explanation: explanation,
+                example_text: document.getElementById("example_text").value,
+                tip_text: document.getElementById("tip_text").value,
+                warning_text: document.getElementById("warning_text").value,
+                activity_text: document.getElementById("activity_text").value
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.status === "success") {
+
+            clearForm();
+
+            loadSections();
+
+        } else {
+
+            alert("Failed to save lesson section");
+        }
+    });
+}
+
+function openEditModal(
+    section_id,
+    section_no,
+    title,
+    explanation,
+    example_text,
+    tip_text,
+    warning_text,
+    activity_text
+) {
+
+    editSectionId =
+        section_id;
+
+    document.getElementById("edit_section_no").value =
+        section_no;
+
+    document.getElementById("edit_title").value =
+        title;
+
+    document.getElementById("edit_explanation").value =
+        explanation;
+
+    document.getElementById("edit_example_text").value =
+        example_text;
+
+    document.getElementById("edit_tip_text").value =
+        tip_text;
+
+    document.getElementById("edit_warning_text").value =
+        warning_text;
+
+    document.getElementById("edit_activity_text").value =
+        activity_text;
+
+    document.getElementById("editModal").style.display =
+        "flex";
+}
+
+function closeEditModal() {
+
+    editSectionId =
+        null;
+
+    document.getElementById("editModal").style.display =
+        "none";
+}
+
+function confirmEditSection() {
+
+    const section_no =
+        document.getElementById("edit_section_no").value;
+
+    const title =
+        document.getElementById("edit_title").value.trim();
+
+    const explanation =
+        document.getElementById("edit_explanation").value.trim();
+
+    if (!section_no || !title || !explanation) {
+
+        alert("Section number, title and explanation are required.");
+
+        return;
+    }
+
+    fetch(
+        "http://localhost/sms/backend/admin/update_lesson_section.php",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                section_id: editSectionId,
+                section_no: section_no,
+                title: title,
+                explanation: explanation,
+                example_text: document.getElementById("edit_example_text").value,
+                tip_text: document.getElementById("edit_tip_text").value,
+                warning_text: document.getElementById("edit_warning_text").value,
+                activity_text: document.getElementById("edit_activity_text").value
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.status === "success") {
+
+            closeEditModal();
+
+            loadSections();
+
+        } else {
+
+            alert("Failed to update lesson section");
+        }
+    });
+}
+
+function openDeleteModal(section_id) {
+
+    deleteSectionId =
+        section_id;
+
+    document.getElementById("deleteModal").style.display =
+        "flex";
+}
+
+function closeDeleteModal() {
+
+    deleteSectionId =
+        null;
+
+    document.getElementById("deleteModal").style.display =
+        "none";
+}
+
+function confirmDeleteSection() {
+
+    fetch(
+        "http://localhost/sms/backend/admin/delete_lesson_section.php",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                section_id: deleteSectionId
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.status === "success") {
+
+            closeDeleteModal();
+
+            loadSections();
+
+        } else {
+
+            alert("Failed to delete lesson section");
+        }
+    });
+}
+
+function clearForm() {
+
+    document.getElementById("section_no").value = "";
+    document.getElementById("title").value = "";
+    document.getElementById("explanation").value = "";
+    document.getElementById("example_text").value = "";
+    document.getElementById("tip_text").value = "";
+    document.getElementById("warning_text").value = "";
+    document.getElementById("activity_text").value = "";
+}
+
+function logout() {
+
+    localStorage.clear();
+
+    window.location.href =
+        "login.html";
+}
+
+</script>
+
+</body>
+</html>

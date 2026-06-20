@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Notes</title>
+<meta charset="UTF-8">
+
+<link rel="stylesheet" href="style.css?v=999">
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css"/>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+
+<body class="notes-page">
+
+<div class="topbar">
+    <h3>SMART TRACK SPM</h3>
+
+    <button onclick="logout()">
+        Logout
+    </button>
+</div>
+
+<div class="sidebar">
+    <a href="dashboard.html">🏠 Dashboard</a>
+    <a href="subjects.html">📚 Subjects</a>
+    <a href="#" onclick="goTopicsSidebar()">📘 Topics</a>
+    <a href="#" onclick="goQuizSidebar()">📝 Quiz</a>
+</div>
+
+<div class="main">
+
+    <div class="notes-hero" data-aos="fade-right">
+        <div>
+            <h1>📘 Learning Notes</h1>
+            <p>Study lesson sections, read PDF notes, and track your learning progress.</p>
+        </div>
+
+        <div class="notes-bottom-actions">
+            <button onclick="goQuiz()">
+                🎯 Start Quiz
+            </button>
+        </div>
+    </div>
+
+    <br>
+
+    <div id="notesContainer"></div>
+
+    <div class="notes-nav">
+        <button onclick="prev()">
+            ⬅ Previous Section
+        </button>
+
+        <span id="sectionInfo">
+            Section 1 / 1
+        </span>
+
+        <button onclick="next()">
+            Next Section ➡
+        </button>
+    </div>
+
+    <br>
+
+    <div class="card fade" data-aos="fade-up">
+
+        <div class="pdf-header">
+            <div>
+                <h2>📄 Full Chapter PDF</h2>
+                <p class="small-muted">Your page progress is saved automatically.</p>
+            </div>
+
+            <span id="pageInfo" class="pdf-page-badge">
+                Page 1 / 1
+            </span>
+        </div>
+
+        <div class="pdf-toolbar">
+
+            <button onclick="prevPage()">
+                ⬅ Previous Page
+            </button>
+
+            <button onclick="nextPage()">
+                Next Page ➡
+            </button>
+
+            <button onclick="zoomOut()">
+                ➖ Zoom Out
+            </button>
+
+            <button onclick="zoomIn()">
+                ➕ Zoom In
+            </button>
+
+        </div>
+
+        <div class="pdf-viewer-box">
+            <canvas id="pdfCanvas"></canvas>
+        </div>
+
+    </div>
+
+    <br>
+
+    <div class="card fade progress-card" data-aos="fade-up">
+
+        <div class="card-header">
+            <h2>📊 Reading Progress</h2>
+
+            <span id="progressText" class="progress-text">
+                0%
+            </span>
+        </div>
+
+        <div class="progress">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+
+        <p class="small-muted">
+            Progress is based on the highest PDF page reached.
+        </p>
+
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+
+AOS.init({
+    duration: 700
+});
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const topic_id =
+    params.get("topic_id");
+
+if (!topic_id) {
+    alert("Topic not found");
+    window.location.href = "subjects.html";
+}
+
+localStorage.setItem("topic_id", topic_id);
+localStorage.setItem("last_topic_id", topic_id);
+
+fetch(
+    "http://localhost/sms/backend/progress/update_last_opened.php",
+    {
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            user_id: localStorage.getItem("user_id"),
+            topic_id: topic_id
+        })
+    }
+);
+
+let notes = [];
+let current = 0;
+let totalSections = 0;
+
+let pdfDoc = null;
+let currentPage = 1;
+let totalPages = 1;
+let pdfScale = 1.0;
+
+const pdfUrl =
+    "http://localhost/sms/backend/get_pdf.php?topic_id=" + topic_id;
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+loadLesson();
+loadPDF();
+
+function loadLesson() {
+
+    fetch(
+`http://localhost/sms/backend/lessons/get_lesson_sections.php?topic_id=${topic_id}`
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        notes = data;
+        totalSections = notes.length;
+
+        render();
+    });
+}
+
+function render() {
+
+    const sectionInfo =
+        document.getElementById("sectionInfo");
+
+    if (notes.length === 0) {
+
+        document.getElementById("notesContainer").innerHTML = `
+        <div class="card notes-empty-card">
+            <h2>📘 PDF Notes Available</h2>
+            
+            <p class="small-muted">
+                No quick lesson sections have been added yet.
+                You can continue learning using the full PDF notes below.
+            </p>
+        </div>
+        `;
+
+        sectionInfo.innerText =
+            "No sections";
+
+        return;
+    }
+
+    const n = notes[current];
+
+    sectionInfo.innerText =
+        "Section " + (current + 1) + " / " + totalSections;
+
+    document.getElementById("notesContainer").innerHTML = `
+
+        <div class="card fade lesson-card" data-aos="fade-up">
+
+            <span class="lesson-tag">
+                Section ${n.section_no}
+            </span>
+
+            <h2>
+                ${n.title}
+            </h2>
+
+            <p>
+                ${n.explanation}
+            </p>
+
+            ${n.example_text ? `
+                <div class="example-box">
+                    <h3>🟣 Example</h3>
+                    <p>${n.example_text}</p>
+                </div>
+            ` : ""}
+
+            ${n.tip_text ? `
+                <div class="tip-box">
+                    <h3>💡 Tip</h3>
+                    <p>${n.tip_text}</p>
+                </div>
+            ` : ""}
+
+            ${n.warning_text ? `
+                <div class="warning-box">
+                    <h3>⚠ Warning</h3>
+                    <p>${n.warning_text}</p>
+                </div>
+            ` : ""}
+
+            ${n.activity_text ? `
+                <div class="activity-box">
+                    <h3>🧠 Activity</h3>
+                    <p>${n.activity_text}</p>
+                </div>
+            ` : ""}
+
+        </div>
+    `;
+
+    AOS.refresh();
+}
+
+function next() {
+
+    if (current < notes.length - 1) {
+        current++;
+        render();
+    }
+}
+
+function prev() {
+
+    if (current > 0) {
+        current--;
+        render();
+    }
+}
+
+function loadPDF() {
+
+    pdfjsLib.getDocument(pdfUrl).promise
+
+    .then(pdf => {
+
+        pdfDoc = pdf;
+        totalPages = pdf.numPages;
+
+        loadSavedPage();
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        document.querySelector(".pdf-viewer-box").innerHTML = `
+            <div class="card">
+                <h2>No PDF found</h2>
+                <p>Please ask the admin to upload PDF notes for this topic.</p>
+            </div>
+        `;
+    });
+}
+
+function renderPDFPage(pageNumber) {
+
+    pdfDoc.getPage(pageNumber).then(page => {
+
+        const canvas =
+            document.getElementById("pdfCanvas");
+
+        const ctx =
+            canvas.getContext("2d");
+
+        const viewport =
+            page.getViewport({ scale: pdfScale });
+
+        canvas.height =
+            viewport.height;
+
+        canvas.width =
+            viewport.width;
+
+        canvas.style.width =
+            viewport.width + "px";
+
+        canvas.style.height =
+            viewport.height + "px";
+
+        page.render({
+            canvasContext: ctx,
+            viewport: viewport
+        });
+
+        document.getElementById("pageInfo").innerText =
+            "Page " + currentPage + " / " + totalPages;
+
+        savePDFProgress();
+    });
+}
+
+function nextPage() {
+
+    if (currentPage < totalPages) {
+        currentPage++;
+        renderPDFPage(currentPage);
+    }
+}
+
+function prevPage() {
+
+    if (currentPage > 1) {
+        currentPage--;
+        renderPDFPage(currentPage);
+    }
+}
+
+function zoomIn() {
+
+    if (pdfScale < 2.0) {
+        pdfScale += 0.2;
+        renderPDFPage(currentPage);
+    }
+}
+
+function zoomOut() {
+
+    if (pdfScale > 0.6) {
+        pdfScale -= 0.2;
+        renderPDFPage(currentPage);
+    }
+}
+
+function loadSavedPage() {
+
+    fetch(
+        "http://localhost/sms/backend/progress/get_progress.php",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                user_id: localStorage.getItem("user_id"),
+                topic_id: topic_id
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        currentPage =
+            parseInt(data.last_page || 1);
+
+        if (currentPage > totalPages) {
+            currentPage = 1;
+        }
+
+        renderPDFPage(currentPage);
+        loadProgress();
+    });
+}
+
+function savePDFProgress() {
+
+    fetch(
+        "http://localhost/sms/backend/progress/save_pdf_progress.php",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                user_id: localStorage.getItem("user_id"),
+                topic_id: topic_id,
+                last_page: currentPage,
+                total_pages: totalPages
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+        loadProgress();
+    });
+}
+
+function loadProgress() {
+
+    fetch(
+        "http://localhost/sms/backend/progress/get_progress.php",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                user_id: localStorage.getItem("user_id"),
+                topic_id: topic_id
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const percent =
+            data.progress_percent || 0;
+
+        document.getElementById("progressBar").style.width =
+            percent + "%";
+
+        document.getElementById("progressText").innerText =
+            percent + "%";
+    });
+}
+
+function goQuiz() {
+
+    window.location.href =
+        "quiz.html?topic_id=" + topic_id;
+}
+
+function goTopicsSidebar() {
+
+    const subject_id =
+        localStorage.getItem("subject_id");
+
+    if (!subject_id) {
+        alert("Please select a subject first");
+        return;
+    }
+
+    window.location.href =
+        "topics.html?subject_id=" + subject_id;
+}
+
+function goQuizSidebar() {
+
+    const topic_id =
+        localStorage.getItem("topic_id");
+
+    if (!topic_id) {
+        alert("Please open a topic first");
+        return;
+    }
+
+    window.location.href =
+        "quiz.html?topic_id=" + topic_id;
+}
+
+function logout() {
+
+    localStorage.clear();
+
+    window.location.href =
+        "login.html";
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Manage Topics</title>
+<meta charset="UTF-8">
+
+<link rel="stylesheet" href="style.css?v=999">
+
+</head>
+
+<body>
+
+<div class="topbar">
+    <h3>SMART TRACK SPM - Admin</h3>
+
+    <button onclick="logout()">
+        Logout
+    </button>
+</div>
+
+<div class="admin-page">
+
+    <h1 class="page-title">
+        📘 Topic Management
+    </h1>
+
+    <div class="card admin-form">
+
+        <select id="subject_id">
+            <option value="">
+                Select Subject
+            </option>
+        </select>
+
+        <input
+            type="text"
+            id="topic_name"
+            placeholder="Enter Topic Name">
+
+        <button onclick="addTopic()">
+            Add Topic
+        </button>
+
+    </div>
+
+    <br><br>
+
+    <div
+        id="topicsContainer"
+        class="admin-list"
+    >
+        <div class="card">
+            Loading topics...
+        </div>
+    </div>
+
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal-overlay">
+
+    <div class="modal-box">
+
+        <div class="modal-icon">✏️</div>
+
+        <h2>Edit Topic</h2>
+
+        <p>
+            Update the topic name below.
+        </p>
+
+        <br>
+
+        <input
+            type="text"
+            id="editTopicName"
+            placeholder="Enter topic name">
+
+        <div class="modal-actions">
+
+            <button
+                type="button"
+                class="btn-secondary"
+                onclick="closeEditModal()">
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                onclick="confirmEditTopic()">
+                Save Changes
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- DELETE MODAL -->
+<div id="deleteModal" class="modal-overlay">
+
+    <div class="modal-box">
+
+        <div class="modal-icon">⚠️</div>
+
+        <h2>Confirm Delete</h2>
+
+        <p>
+            This topic and its related learning materials may be removed.
+            This action cannot be undone.
+        </p>
+
+        <div class="modal-actions">
+
+            <button
+                type="button"
+                class="btn-secondary"
+                onclick="closeDeleteModal()">
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="btn-danger"
+                onclick="confirmDeleteTopic()">
+                Delete
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+let editTopicId = null;
+let editSubjectId = null;
+let deleteTopicId = null;
+
+loadSubjects();
+loadTopics();
+
+function loadSubjects() {
+
+    fetch(
+        "http://localhost/sms/backend/subjects/get_subjects.php"
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const select =
+            document.getElementById("subject_id");
+
+        select.innerHTML = `
+            <option value="">
+                Select Subject
+            </option>
+        `;
+
+        data.forEach(subject => {
+
+            select.innerHTML += `
+                <option value="${subject.subject_id}">
+                    ${subject.subject_name}
+                </option>
+            `;
+        });
+    });
+}
+
+function loadTopics() {
+
+    fetch(
+        "http://localhost/sms/backend/topics/get_all_topics.php"
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const container =
+            document.getElementById("topicsContainer");
+
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+
+            container.innerHTML = `
+                <div class="admin-list-item">
+                    <div class="admin-list-info">
+                        <h2>No Topics Yet</h2>
+                        <p class="small-muted">
+                            Add your first topic using the form above.
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            return;
+        }
+
+        data.forEach(topic => {
+
+            container.innerHTML += `
+
+                <div class="admin-list-item">
+
+                    <div class="admin-list-info">
+
+                        <h2>
+                            ${topic.topic_name}
+                        </h2>
+
+                        <div class="subject-meta">
+
+                            <span class="meta-label">
+                                Topic ID
+                            </span>
+
+                            <span class="meta-value">
+                                #${topic.topic_id}
+                            </span>
+
+                            <span class="meta-label">
+                                Subject
+                            </span>
+
+                            <span class="meta-value">
+                                ${topic.subject_name}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="admin-actions">
+
+                        <button
+                            onclick="goNotes()">
+                            📄 Notes
+                        </button>
+
+                        <button
+                            onclick="goQuestions()">
+                            ❓ Questions
+                        </button>
+
+                        <button
+                            class="btn-edit"
+                            onclick="openEditModal(
+                                ${topic.topic_id},
+                                '${topic.topic_name}',
+                                ${topic.subject_id}
+                            )">
+                            ✏ Edit
+                        </button>
+
+                        <button
+                            class="btn-delete"
+                            onclick="openDeleteModal(${topic.topic_id})">
+                            🗑 Delete
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `;
+        });
+    });
+}
+
+function addTopic() {
+
+    const subject_id =
+        document.getElementById("subject_id").value;
+
+    const topic_name =
+        document.getElementById("topic_name").value.trim();
+
+    if (!subject_id || !topic_name) {
+
+        alert("Please select subject and enter topic name.");
+
+        return;
+    }
+
+    fetch(
+        "http://localhost/sms/backend/admin/add_topic.php",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                subject_id: subject_id,
+                topic_name: topic_name
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.status === "success") {
+
+            document.getElementById("topic_name").value = "";
+
+            loadTopics();
+
+        } else {
+
+            alert("Failed to add topic");
+        }
+    });
+}
+
+function openEditModal(topic_id, topic_name, subject_id) {
+
+    editTopicId =
+        topic_id;
+
+    editSubjectId =
+        subject_id;
+
+    document.getElementById("editTopicName").value =
+        topic_name;
+
+    document.getElementById("editModal").style.display =
+        "flex";
+}
+
+function closeEditModal() {
+
+    editTopicId = null;
+    editSubjectId = null;
+
+    document.getElementById("editModal").style.display =
+        "none";
+}
+
+function confirmEditTopic() {
+
+    const topic_name =
+        document.getElementById("editTopicName").value.trim();
+
+    if (!topic_name) {
+
+        alert("Please enter topic name.");
+
+        return;
+    }
+
+    fetch(
+        "http://localhost/sms/backend/admin/update_topic.php",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                topic_id: editTopicId,
+                topic_name: topic_name,
+                subject_id: editSubjectId
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.status === "success") {
+
+            closeEditModal();
+
+            loadTopics();
+
+        } else {
+
+            alert("Failed to update topic");
+        }
+    });
+}
+
+function openDeleteModal(topic_id) {
+
+    deleteTopicId =
+        topic_id;
+
+    document.getElementById("deleteModal").style.display =
+        "flex";
+}
+
+function closeDeleteModal() {
+
+    deleteTopicId =
+        null;
+
+    document.getElementById("deleteModal").style.display =
+        "none";
+}
+
+function confirmDeleteTopic() {
+
+    fetch(
+        "http://localhost/sms/backend/admin/delete_topic.php",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                topic_id: deleteTopicId
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        if (data.status === "success") {
+
+            closeDeleteModal();
+
+            loadTopics();
+
+        } else {
+
+            alert("Failed to delete topic");
+        }
+    });
+}
+
+function goNotes() {
+
+    window.location.href =
+        "admin_upload_notes.html";
+}
+
+function goQuestions() {
+
+    window.location.href =
+        "admin_add_question.html";
+}
+
+function logout() {
+
+    localStorage.clear();
+
+    window.location.href =
+        "login.html";
+}
+
+</script>
+
+</body>
+</html>

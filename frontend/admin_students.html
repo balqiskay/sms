@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Students</title>
+
+<meta charset="UTF-8">
+
+<link rel="stylesheet"
+href="style.css?v=999">
+
+</head>
+
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <h3>SMART TRACK SPM - Admin</h3>
+    <button onclick="logout()">
+        Logout
+    </button>
+</div>
+
+<!-- PAGE -->
+<div class="admin-page">
+
+    <h1 class="page-title">
+        👨‍🎓 Student Management
+    </h1>
+
+    <div
+        id="studentsContainer"
+        class="grid"
+    >
+
+        <div class="card">
+            Loading students...
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+// LOAD STUDENTS
+fetch(
+"http://localhost/sms/backend/admin/get_students.php"
+)
+
+.then(res => res.json())
+
+.then(data => {
+
+    console.log(data);
+
+    const container =
+        document.getElementById(
+            "studentsContainer"
+        );
+
+    container.innerHTML = "";
+
+    // EMPTY
+    if (data.length === 0) {
+
+        container.innerHTML = `
+
+            <div class="card">
+
+                <h2>No Students Yet</h2>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+    // LOOP
+    data.forEach(student => {
+
+        container.innerHTML += `
+
+        <div class="card fade">
+
+            <h2>
+                ${student.name}
+            </h2>
+
+            <p>
+                📧 ${student.email}
+            </p>
+
+            <br>
+
+            <p>
+                📚 Progress:
+                ${student.avg_progress}%
+            </p>
+
+            <p>
+                ✅ Completed Topics:
+                ${student.completed_topics}
+            </p>
+
+            <p>
+                📝 Average Score:
+                ${student.avg_score}%
+            </p>
+
+        </div>
+
+        `;
+    });
+
+})
+
+.catch(error => {
+
+    console.error(error);
+
+});
+
+function logout() {
+
+    localStorage.clear();
+
+    window.location.href =
+        "login.html";
+}
+
+</script>
+
+</body>
+</html>

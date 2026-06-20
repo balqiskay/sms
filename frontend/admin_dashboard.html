@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Admin Dashboard</title>
+<meta charset="UTF-8">
+
+<link rel="stylesheet" href="style.css?v=999">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css"/>
+
+</head>
+
+<body>
+
+<div class="topbar">
+    <h3>SMART TRACK SPM - Admin</h3>
+
+    <button onclick="logout()">
+        Logout
+    </button>
+</div>
+
+<div class="admin-page">
+
+    <h1 class="page-title">
+        📊 Admin Dashboard
+    </h1>
+
+    <p class="dashboard-subtitle">
+        Monitor system content, student activity, and learning performance.
+    </p>
+
+    <br>
+
+    <div class="grid admin-stats-grid">
+
+        <div class="card stats-card fade" data-aos="fade-up">
+            <h3>👨‍🎓 Students</h3>
+            <h1 id="studentCount">0</h1>
+        </div>
+
+        <div class="card stats-card fade" data-aos="fade-up" data-aos-delay="100">
+            <h3>📚 Subjects</h3>
+            <h1 id="subjectCount">0</h1>
+        </div>
+
+        <div class="card stats-card fade" data-aos="fade-up" data-aos-delay="200">
+            <h3>📘 Topics</h3>
+            <h1 id="topicCount">0</h1>
+        </div>
+
+        <div class="card stats-card fade" data-aos="fade-up" data-aos-delay="300">
+            <h3>🧩 Lesson Sections</h3>
+            <h1 id="sectionCount">0</h1>
+        </div>
+
+        <div class="card stats-card fade" data-aos="fade-up" data-aos-delay="400">
+            <h3>📝 Questions</h3>
+            <h1 id="questionCount">0</h1>
+        </div>
+
+        <div class="card stats-card fade" data-aos="fade-up" data-aos-delay="500">
+            <h3>🧠 Diagnostic Qs</h3>
+            <h1 id="diagnosticCount">0</h1>
+        </div>
+
+    </div>
+
+    <br><br>
+
+    <h2>
+        ⚡ Quick Actions
+    </h2>
+
+    <br>
+
+    <div class="grid">
+
+        <div class="card fade action-card" data-aos="zoom-in">
+            <h2>📚 Subjects</h2>
+            <p>Manage subjects in the system.</p>
+            <button onclick="goSubjectsAdmin()">Manage Subjects</button>
+        </div>
+
+        <div class="card fade action-card" data-aos="zoom-in" data-aos-delay="100">
+            <h2>📘 Topics</h2>
+            <p>Create and organize learning topics.</p>
+            <button onclick="goTopicsAdmin()">Manage Topics</button>
+        </div>
+
+        <div class="card fade action-card" data-aos="zoom-in" data-aos-delay="200">
+            <h2>🧩 Lesson Builder</h2>
+            <p>Create lesson sections for each topic.</p>
+            <button onclick="goLessonBuilder()">Build Lessons</button>
+        </div>
+
+        <div class="card fade action-card" data-aos="zoom-in" data-aos-delay="300">
+            <h2>📄 PDF Notes</h2>
+            <p>Upload and manage PDF learning materials.</p>
+            <button onclick="goUploadNotes()">Manage PDFs</button>
+        </div>
+
+        <div class="card fade action-card" data-aos="zoom-in" data-aos-delay="400">
+            <h2>📝 Question Bank</h2>
+            <p>Add and manage quiz questions.</p>
+            <button onclick="goQuestionsAdmin()">Manage Questions</button>
+        </div>
+
+    </div>
+
+    <br><br>
+
+    <div class="grid">
+
+        <div class="card stats-card fade" data-aos="fade-up">
+            <h3>📄 PDF Notes</h3>
+            <h1 id="pdfCount">0</h1>
+        </div>
+
+        <div class="card stats-card fade" data-aos="fade-up" data-aos-delay="100">
+            <h3>📝 Quiz Attempts</h3>
+            <h1 id="attemptCount">0</h1>
+        </div>
+
+        <div class="card stats-card fade" data-aos="fade-up" data-aos-delay="200">
+            <h3>📊 Avg Progress</h3>
+            <h1 id="progressAvg">0%</h1>
+        </div>
+
+        <div class="card stats-card fade" data-aos="fade-up" data-aos-delay="300">
+            <h3>🏆 Avg Score</h3>
+            <h1 id="scoreAvg">0%</h1>
+        </div>
+
+    </div>
+
+    <br><br>
+
+    <div class="admin-analytics-row">
+        
+        <div class="card fade admin-chart-card" data-aos="fade-up">
+            
+            <div class="chart-card-header">
+                <div>
+                    <h2>📊 Learning Progress</h2>
+                    <p class="small-muted">
+                        Average reading progress across all students.
+                    </p>
+                </div>
+
+                <span class="analytics-badge">
+                    Progress
+                </span>
+            </div>
+
+            <div class="chart-box">
+                <canvas id="progressChart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="card fade admin-chart-card" data-aos="fade-up" data-aos-delay="100">
+            
+            <div class="chart-card-header">
+                <div>
+                    <h2>🏆 Quiz Performance</h2>
+                    <p class="small-muted">
+                        Average quiz score compared to remaining gap.
+                    </p>
+                </div>
+
+                <span class="analytics-badge">
+                    Score
+                </span>
+            </div>
+
+            <div class="chart-box">
+                <canvas id="quizChart"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+    <br><br>
+
+    <div class="admin-insight-grid">
+
+    <div class="card fade admin-insight-card best-insight"
+         data-aos="fade-right">
+
+        <div class="insight-icon">🏅</div>
+
+        <div>
+
+            <small>Best Performing Topic</small>
+
+            <h2 id="bestTopic">
+                Loading...
+            </h2>
+
+            <p id="bestTopicText">
+                Topic with the highest average quiz score.
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="card fade admin-insight-card weak-insight"
+         data-aos="fade-right"
+         data-aos-delay="100">
+
+        <div class="insight-icon">⚠️</div>
+
+        <div>
+
+            <small>Needs Attention</small>
+
+            <h2 id="weakTopic">
+                Loading...
+            </h2>
+
+            <p id="weakTopicText">
+                Topic with the lowest average quiz score. 
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="card fade admin-insight-card system-insight"
+         data-aos="fade-right"
+         data-aos-delay="200">
+
+        <div class="insight-icon">💡</div>
+
+        <div>
+
+            <small>System Insight</small>
+
+            <h2>
+                Content Summary
+            </h2>
+
+            <p id="insightText">
+                Loading analytics...
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+
+const user_id =
+    localStorage.getItem("user_id");
+
+const role =
+    localStorage.getItem("role");
+
+if (!user_id) {
+    window.location.href = "login.html";
+}
+
+if (role !== "admin") {
+    window.location.href = "dashboard.html";
+}
+
+AOS.init({
+    duration: 700
+});
+
+function goSubjectsAdmin() {
+    window.location.href = "admin_subjects.html";
+}
+
+function goTopicsAdmin() {
+    window.location.href = "admin_topics.html";
+}
+
+function goLessonBuilder() {
+    window.location.href = "admin_lesson_builder.html";
+}
+
+function goQuestionsAdmin() {
+    window.location.href = "admin_add_question.html";
+}
+
+function goUploadNotes() {
+    window.location.href = "admin_upload_notes.html";
+}
+
+fetch(
+    "http://localhost/sms/backend/admin/get_dashboard_stats.php"
+)
+
+.then(res => res.json())
+
+.then(data => {
+
+    document.getElementById("studentCount").innerText =
+        data.students;
+
+    document.getElementById("subjectCount").innerText =
+        data.subjects;
+
+    document.getElementById("topicCount").innerText =
+        data.topics;
+
+    document.getElementById("sectionCount").innerText =
+        data.sections;
+
+    document.getElementById("questionCount").innerText =
+        data.questions;
+
+    document.getElementById("diagnosticCount").innerText =
+        data.diagnostic_questions;
+
+    document.getElementById("pdfCount").innerText =
+        data.pdf_notes;
+
+    document.getElementById("attemptCount").innerText =
+        data.attempts;
+
+    document.getElementById("progressAvg").innerText =
+        data.avg_progress + "%";
+
+    document.getElementById("scoreAvg").innerText =
+        data.avg_score + "%";
+
+    if (data.topics_with_enough_attempts < 2) {
+        
+        document.getElementById("bestTopic").innerText = "Comparison unavailable";
+
+        document.getElementById("weakTopic").innerText = "Comparison unavailable";
+
+        document.getElementById("bestTopicText").innerText = "At least 2 topics with 3 or more quiz attempts are required.";
+
+        document.getElementById("weakTopicText").innerText = "More student quiz attempts are needed before identifying weak topics.";
+
+    } else {
+        
+        document.getElementById("bestTopic").innerText = data.best_topic;
+
+        document.getElementById("weakTopic").innerText = data.weak_topic;
+
+        document.getElementById("bestTopicText").innerText = "Topic with the highest average quiz score.";
+
+        document.getElementById("weakTopicText").innerText = "Topic with the lowest average quiz score.";
+    }
+
+    document.getElementById("insightText").innerText =
+        "SMART TRACK SPM currently contains " +
+        data.subjects + " subject(s), " +
+        data.topics + " topic(s), " +
+        data.sections + " lesson section(s), and " +
+        data.questions + " quiz question(s).";
+
+    fetch(
+    "http://localhost/sms/backend/admin/get_topic_progress.php"
+)
+
+.then(res => res.json())
+
+.then(progressData => {
+
+    new Chart(
+        document.getElementById("progressChart"),
+        {
+            type: "bar",
+
+            data: {
+
+                labels: progressData.map(
+                    item => item.topic_name
+                ),
+
+                datasets: [{
+
+                    label: "Average Progress (%)",
+
+                    data: progressData.map(
+                        item => item.avg_progress
+                    ),
+
+                    borderWidth: 2,
+                    borderRadius: 12
+                }]
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        }
+    );
+});
+
+    new Chart(
+        document.getElementById("quizChart"),
+        {
+            type: "doughnut",
+
+            data: {
+                labels: ["Average Score", "Remaining"],
+
+                datasets: [{
+                    data: [
+                        data.avg_score,
+                        100 - data.avg_score
+                    ],
+                    borderWidth: 2
+                }]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        }
+    );
+});
+
+function logout() {
+
+    localStorage.clear();
+
+    window.location.href =
+        "login.html";
+}
+
+</script>
+
+</body>
+</html>

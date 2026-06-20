@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Login</title>
+<meta charset="UTF-8">
+
+<link rel="stylesheet" href="style.css?v=999">
+
+<link rel="stylesheet"
+href="https://unpkg.com/aos@2.3.1/dist/aos.css"/>
+
+<style>
+
+body {
+    min-height:100vh;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.auth-box {
+
+    width:100%;
+    max-width:420px;
+
+    padding:35px;
+
+    text-align:center;
+}
+
+.logo {
+
+    font-size:40px;
+    margin-bottom:10px;
+}
+
+.subtitle {
+    color:#6b7280;
+    margin-bottom:30px;
+}
+
+.auth-footer {
+    margin-top:20px;
+    color:#6b7280;
+}
+
+.auth-footer a {
+    color:#4f46e5;
+    text-decoration:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- LOGIN BOX -->
+<div class="card auth-box fade"
+     data-aos="zoom-in">
+
+    <div class="logo">🎓</div>
+
+    <h1>SMART TRACK SPM</h1>
+
+    <p class="subtitle">
+        Continue your learning journey
+    </p>
+
+    <!-- EMAIL -->
+    <input
+        type="text"
+        id="email"
+        placeholder="Enter your email">
+
+    <!-- PASSWORD -->
+    <input
+        type="password"
+        id="password"
+        placeholder="Enter your password">
+
+    <!-- BUTTON -->
+    <button onclick="login()" style="width:100%;">
+        🚀 Login
+    </button>
+
+    <!-- FOOTER -->
+    <div class="auth-footer">
+
+        Don't have an account?
+
+        <a href="register.html">
+            Register
+        </a>
+
+    </div>
+
+</div>
+
+<script
+src="https://unpkg.com/aos@2.3.1/dist/aos.js">
+</script>
+
+<script>
+
+AOS.init({
+    duration:700
+});
+
+// LOGIN
+function login() {
+
+    const email =
+        document.getElementById("email").value;
+
+    const password =
+        document.getElementById("password").value;
+
+    // VALIDATION
+    if (!email || !password) {
+
+        alert("Please fill all fields");
+
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("email", email);
+
+    formData.append("password", password);
+
+    fetch(
+        "http://localhost/sms/backend/auth/login.php",
+        {
+            method:"POST",
+            body:formData
+        }
+    )
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        console.log(data);
+        alert(data.role);
+
+        // SUCCESS
+        if (data.status === "success") {
+            localStorage.setItem(
+                "user_id",
+                data.user_id
+            );
+
+            // SMALL DELAY
+            setTimeout(() => {
+                if (data.status === "success") {
+                    
+                    // SAVE USER
+                    localStorage.setItem(
+                        "user_id",
+                        data.user_id
+                    );
+
+                    localStorage.setItem(
+                        "name",
+                        data.name
+                    );
+
+                    localStorage.setItem(
+                        "role",
+                        data.role
+                    );
+
+                    localStorage.setItem(
+                        "diagnostic_done",
+                        data.diagnostic_done
+                    );
+
+                    // ADMIN
+                    if (data.role === "admin") {
+                        
+                        window.location.href = "admin_dashboard.html";
+
+                    } else {
+                        
+                        window.location.href = "dashboard.html";
+                    }
+
+                }
+
+            }, 500);
+
+        }
+        else {
+            alert("Invalid email or password");
+        }
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        alert("Server error");
+    });
+}
+
+</script>
+
+</body>
+</html>

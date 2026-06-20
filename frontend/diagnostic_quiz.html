@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Diagnostic Quiz</title>
+
+<meta charset="UTF-8">
+
+<link rel="stylesheet"
+href="style.css?v=999">
+
+</head>
+
+<body>
+
+<div class="topbar">
+    <h3>SMART TRACK SPM</h3>
+</div>
+
+<div class="diagnostic-container">
+
+    <h1 class="page-title">
+        🧠 Diagnostic Quiz
+    </h1>
+
+    <p>
+        Complete this quiz to help us understand your current knowledge level and recommend suitable topics for you.
+    </p>
+
+    <div id="quizContainer">
+
+        <div class="card">
+            Loading questions...
+        </div>
+
+    </div>
+
+    <br>
+
+    <button onclick="submitDiagnosticQuiz()">
+        Submit Diagnostic Quiz
+    </button>
+
+</div>
+
+<script>
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const subject_id =
+    params.get("subject_id");
+
+let questions = [];
+
+fetch(
+    "http://localhost/sms/backend/quiz/get_diagnostic_questions.php?subject_id=" + subject_id
+)
+
+.then(res => res.json())
+
+.then(data => {
+
+    questions = data;
+
+    renderQuestions();
+});
+
+function renderQuestions() {
+
+    const container =
+        document.getElementById("quizContainer");
+
+    container.innerHTML = "";
+
+    questions.forEach((q, index) => {
+
+        container.innerHTML += `
+
+        <div class="card">
+
+            <h3>
+                ${index + 1}. ${q.question_text}
+            </h3>
+
+            <label class="diag-option">
+                <input type="radio"
+                       name="q${q.question_id}"
+                       value="A">
+                 
+                 <span>${q.option_a}</span>
+            </label>
+
+            <br>
+
+            <label class="diag-option">
+                <input type="radio"
+                       name="q${q.question_id}"
+                       value="B">
+
+                <span>${q.option_b}</span>
+            </label>
+
+            <br>
+
+            <label class="diag-option">
+                <input type="radio"
+                       name="q${q.question_id}"
+                       value="C">
+
+                <span>${q.option_c}</span>
+            </label>
+
+            <br>
+
+            <label class="diag-option">
+                <input type="radio"
+                       name="q${q.question_id}"
+                       value="D">
+
+                <span>${q.option_d}</span>
+            </label>
+
+        </div>
+
+        <br>
+
+        `;
+    });
+}
+
+function submitDiagnosticQuiz() {
+
+    const answers = [];
+
+    questions.forEach(q => {
+
+        const selected =
+            document.querySelector(
+                `input[name="q${q.question_id}"]:checked`
+            );
+
+        answers.push({
+
+            question_id:
+                q.question_id,
+
+            answer:
+                selected
+                ? selected.value
+                : ""
+
+        });
+
+    });
+
+    fetch(
+        "http://localhost/sms/backend/quiz/submit_diagnostic_quiz.php",
+        {
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+                
+                user_id: localStorage.getItem("user_id"),
+
+                subject_id: subject_id,
+
+                answers: answers
+
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        alert(
+            "Diagnostic quiz completed!"
+        );
+
+        window.location.href =
+            "topics.html?subject_id=" + subject_id;
+    });
+}
+
+</script>
+
+</body>
+</html>

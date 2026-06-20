@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Quiz Result</title>
+<meta charset="UTF-8">
+
+<link rel="stylesheet" href="style.css?v=999">
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css"/>
+
+</head>
+
+<body>
+
+<div class="topbar">
+    <h3>SMART TRACK SPM</h3>
+
+    <button onclick="logout()">
+        Logout
+    </button>
+</div>
+
+<div class="result-page">
+
+    <div class="result-wrapper">
+
+        <h1 data-aos="fade-right">
+            🎯 Quiz Result
+        </h1>
+
+        <p class="small-muted" data-aos="fade-right" data-aos-delay="100">
+            Review your performance and continue learning.
+        </p>
+
+        <br>
+
+        <div class="card fade result-card" data-aos="zoom-in">
+
+            <div id="resultContainer"></div>
+
+            <br>
+
+            <div class="result-actions">
+
+                <button onclick="goTopics()">
+                    📘 Back to Topics
+                </button>
+
+                <button onclick="retryQuiz()">
+                    🔄 Retry Quiz
+                </button>
+
+                <button onclick="goNotes()">
+                    📄 Continue Learning
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+
+AOS.init({
+    duration: 700
+});
+
+const params =
+    new URLSearchParams(window.location.search);
+
+const score =
+    parseInt(params.get("score"));
+
+const total =
+    parseInt(params.get("total"));
+
+const topic_id =
+    params.get("topic_id");
+
+const percentage =
+    Math.round((score / total) * 100);
+
+let message = "";
+let level = "";
+let levelClass = "";
+
+if (percentage >= 80) {
+
+    message =
+        "Excellent Work 🎉";
+
+    level =
+        "Strong";
+
+    levelClass =
+        "status-complete";
+
+} else if (percentage >= 50) {
+
+    message =
+        "Good Job 👍";
+
+    level =
+        "Good";
+
+    levelClass =
+        "status-progress";
+
+} else {
+
+    message =
+        "Keep Practicing 💪";
+
+    level =
+        "Weak";
+
+    levelClass =
+        "status-none";
+}
+
+document.getElementById("resultContainer").innerHTML = `
+
+    <div class="result-layout">
+
+        <div class="result-circle"
+             style="--progress:${percentage}%">
+
+            <div class="result-inner">
+
+                <div class="big-score">
+                    ${percentage}%
+                </div>
+
+                <small>
+                    ${score}/${total}
+                </small>
+
+            </div>
+
+        </div>
+
+        <div class="result-summary">
+
+            <h2>
+                ${message}
+            </h2>
+
+            <p class="small-muted">
+                You completed the quiz successfully.
+            </p>
+
+            <div class="result-stats">
+
+                <div class="result-stat-box">
+
+                    <span>Correct Answers</span>
+
+                    <strong>
+                        ${score}
+                    </strong>
+
+                </div>
+
+                <div class="result-stat-box">
+
+                    <span>Total Questions</span>
+
+                    <strong>
+                        ${total}
+                    </strong>
+
+                </div>
+
+                <div class="result-stat-box">
+                    
+                    <span>Learning Level</span>
+                    <div class="result-level ${levelClass}">
+                        ${level}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+`;
+
+function goTopics() {
+
+    const subject_id =
+        localStorage.getItem("subject_id");
+
+    if (!subject_id) {
+        window.location.href = "subjects.html";
+        return;
+    }
+
+    window.location.href =
+        "topics.html?subject_id=" + subject_id;
+}
+
+function retryQuiz() {
+
+    window.location.href =
+        "quiz.html?topic_id=" + topic_id;
+}
+
+function goNotes() {
+
+    window.location.href =
+        "notes.html?topic_id=" + topic_id;
+}
+
+function logout() {
+
+    localStorage.clear();
+
+    window.location.href =
+        "login.html";
+}
+
+</script>
+
+</body>
+</html>

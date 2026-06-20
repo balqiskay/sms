@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Dashboard</title>
+<meta charset="UTF-8">
+
+<link rel="stylesheet" href="style.css?v=999">
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css"/>
+</head>
+
+<body>
+
+<div class="topbar premium-topbar">
+
+    <div class="brand-block">
+        <div class="brand-logo">🧠</div>
+
+        <div>
+            <h3>SMART TRACK SPM</h3>
+            <span>Adaptive Learning System</span>
+        </div>
+    </div>
+
+    <button class="logout-pill" onclick="logout()">
+        🚪 Logout
+    </button>
+
+</div>
+
+<div class="sidebar premium-sidebar">
+
+    <div class="sidebar-profile">
+        <div class="profile-avatar">
+            🎓
+        </div>
+
+        <div>
+            <h4>Student Portal</h4>
+            <p>SPM Learning Hub</p>
+        </div>
+    </div>
+
+    <div class="sidebar-section-title">
+        LEARNING
+    </div>
+
+    <a href="dashboard.html" class="active">
+        <span>🏠</span> Dashboard
+    </a>
+
+    <a href="subjects.html">
+        <span>📚</span> Subjects
+    </a>
+
+    <a href="#" onclick="goTopicsSidebar()">
+        <span>📘</span> Topics
+    </a>
+
+    <a href="#" onclick="startQuiz()">
+        <span>📝</span> Quiz
+    </a>
+
+</div>
+
+<div class="main">
+    
+    <div class="dashboard-hero" data-aos="fade-up">
+        
+        <div class="hero-content">
+            
+            <span class="hero-badge">
+                🚀 Adaptive Learning Dashboard
+            </span>
+
+            <h1>
+                Welcome Back 👋
+            </h1>
+
+            <p>
+                Track your progress, continue your latest topic, and improve your SPM mastery with personalised recommendations.
+            </p>
+
+            <div class="hero-actions">
+                
+                <button onclick="goSubjects()">
+                    📚 Explore Subjects
+                </button>
+
+                <button class="hero-secondary-btn" onclick="toggleContinueLearning()">
+                    🧠 Continue Learning
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="hero-orb">
+            
+            <div class="orb-card">
+                <span>Current Mission</span>
+                <h2>Level Up</h2>
+                <p>Complete topics and improve your quiz score.</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <br>
+
+    <!-- TOP ACTION CARDS -->
+    <div class="grid">
+
+        <div class="card fade" data-aos="zoom-in">
+            <h2>📚 Subjects</h2>
+
+            <p>
+                Explore all available subjects and topics.
+            </p>
+
+            <br>
+
+            <button onclick="goSubjects()">
+                Explore Subjects
+            </button>
+        </div>
+
+        <div class="card fade" data-aos="zoom-in" data-aos-delay="100">
+            <h2>🧠 Continue Learning</h2>
+
+            <p>
+                View your recent learning history.
+            </p>
+
+            <br>
+
+            <button onclick="toggleContinueLearning()">
+                Continue
+            </button>
+        </div>
+
+        <div class="card fade" data-aos="zoom-in" data-aos-delay="200">
+            <h2>📝 Quiz</h2>
+
+            <p>
+                Start quiz from your latest studied topic.
+            </p>
+
+            <br>
+
+            <button onclick="startQuiz()">
+                Start Quiz
+            </button>
+        </div>
+
+    </div>
+
+    <br><br>
+
+    <!-- CONTINUE LEARNING PANEL -->
+    <div id="continuePanel" style="display:none;">
+
+        <h2>📚 Continue Learning</h2>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;">
+
+            <button onclick="loadRecentLearning(1)">Today</button>
+            <button onclick="loadRecentLearning(3)">Last 3 Days</button>
+            <button onclick="loadRecentLearning(7)">Last 7 Days</button>
+            <button onclick="loadRecentLearning(30)">Last 30 Days</button>
+            <button onclick="loadRecentLearning(0)">All</button>
+
+        </div>
+
+        <div class="grid" id="recentLearning">
+            <div class="card">
+                Choose a filter to view learning history.
+            </div>
+        </div>
+
+        <br><br>
+
+    </div>
+
+    <!-- DASHBOARD STATS -->
+    <div class="grid" id="dashboardStats">
+        <div class="card">
+            Loading dashboard stats...
+        </div>
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+
+const user_id =
+    localStorage.getItem("user_id");
+
+const role =
+    localStorage.getItem("role");
+
+if (!user_id) {
+    window.location.href = "login.html";
+}
+
+if (role === "admin") {
+    window.location.href = "admin_dashboard.html";
+}
+
+AOS.init({
+    duration: 700
+});
+
+let recommendedTopicId = null;
+
+function goSubjects() {
+    window.location.href = "subjects.html";
+}
+
+function toggleContinueLearning() {
+
+    const panel =
+        document.getElementById("continuePanel");
+
+    if (panel.style.display === "none") {
+
+        panel.style.display = "block";
+
+        loadRecentLearning(7);
+
+    } else {
+
+        panel.style.display = "none";
+    }
+}
+
+function startQuiz() {
+
+    const last_topic_id =
+        localStorage.getItem("last_topic_id");
+
+    if (last_topic_id) {
+        
+        fetch(
+            `http://localhost/sms/backend/topics/get_topic_subject.php?topic_id=${last_topic_id}`
+        )
+
+        .then(res => res.json())
+
+        .then(data => {
+            
+            localStorage.setItem(
+                "subject_id",
+                data.subject_id
+            );
+
+            window.location.href = "quiz.html?topic_id=" + last_topic_id;
+        });
+
+        return;
+    }
+
+    if (recommendedTopicId) {
+
+        window.location.href =
+            "quiz.html?topic_id=" + recommendedTopicId;
+
+        return;
+    }
+
+    alert(
+        "Please study a topic first before taking a quiz."
+    );
+
+    window.location.href =
+        "subjects.html";
+}
+
+function goTopicsSidebar() {
+
+    const subject_id =
+        localStorage.getItem("subject_id");
+
+    if (!subject_id) {
+        alert("Please select a subject first");
+        return;
+    }
+
+    window.location.href =
+        "topics.html?subject_id=" + subject_id;
+}
+
+function loadDashboardStats() {
+
+    const user_id =
+        localStorage.getItem("user_id");
+
+    if (!user_id) {
+        return;
+    }
+
+    fetch(
+`http://localhost/sms/backend/dashboard/get_dashboard_stats.php?user_id=${user_id}`
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        document.getElementById("dashboardStats").innerHTML = `
+
+            <div class="card fade" data-aos="fade-up">
+
+                <div class="card-header">
+                    <h2>🔥 Overall Progress</h2>
+
+                    <span class="progress-text">
+                        ${data.avg_progress}%
+                    </span>
+                </div>
+
+                <div class="progress">
+                    <div class="progress-bar"
+                         style="width:${data.avg_progress}%">
+                    </div>
+                </div>
+
+                <p>
+                    ${data.completed_topics} of ${data.total_topics} Topics Completed
+                </p>
+
+            </div>
+
+            <div class="card fade" data-aos="fade-up" data-aos-delay="100">
+
+                <h2>🧠 Learning Profile</h2>
+
+                <p class="small-muted">
+                    Monitor your learning performance.
+                </p>
+
+                <div id="learningProfileContent">
+                    Loading...
+                </div>
+
+            </div>
+
+            <div class="card fade" data-aos="fade-up" data-aos-delay="200">
+
+                <h2>🎯 Recommended Topic</h2>
+
+                <div id="recommendedTopic">
+                    Loading recommendation...
+                </div>
+
+            </div>
+
+        `;
+
+        loadLearningProfile();
+        loadOverallProfile();
+
+        AOS.refresh();
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        document.getElementById("dashboardStats").innerHTML = `
+            <div class="card">
+                Failed to load stats
+            </div>
+        `;
+    });
+}
+
+function loadLearningProfile() {
+
+    const user_id =
+        localStorage.getItem("user_id");
+
+    fetch(
+`http://localhost/sms/backend/dashboard/get_learning_profile.php?user_id=${user_id}`
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const profileCard =
+            document.getElementById("learningProfileContent");
+
+        const recommendationCard =
+            document.getElementById("recommendedTopic");
+
+        if (!data.has_diagnostic) {
+
+            loadOverallProfile();
+
+            recommendationCard.innerHTML = `
+
+                <div class="empty-card">
+
+                    <p>
+                        No recommendations available.
+                    </p>
+
+                    <small>
+                        Start learning to unlock adaptive recommendations.
+                    </small>
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+        profileCard.innerHTML = `
+
+            <div class="profile-subject">
+
+                <small>Latest Subject</small>
+
+                <h3>
+                    ${data.subject_name}
+                </h3>
+
+            </div>
+
+            <div class="profile-grid">
+
+                <div class="profile-box">
+
+                    <p>Diagnostic Level</p>
+
+                    <span class="level-badge">
+                        ${data.diagnostic_level}
+                    </span>
+
+                </div>
+
+                <div class="profile-box">
+
+                    <p>Current Level</p>
+
+                    <span class="level-badge">
+                        ${data.current_level}
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="profile-score">
+
+                Diagnostic Score:
+                ${data.diagnostic_score}/${data.diagnostic_total}
+
+            </div>
+
+        `;
+
+        recommendedTopicId =
+            data.recommended_topic_id;
+
+        if (data.recommended_topic_id) {
+
+    const reasonText =
+        data.recommendation_reason;
+
+    const priorityText =
+    data.recommendation_source === "Quiz Performance"
+        ? "AI Recommendation"
+    : data.recommendation_source === "Limited Quiz Data"
+        ? "Building Profile"
+    : "Diagnostic Recommendation";
+
+    const priorityClass =
+        priorityText === "High Priority"
+        ? "priority-high"
+        : "priority-normal";
+
+    recommendationCard.innerHTML = `
+
+        <div class="recommend-final-card">
+
+            <div class="recommend-top">
+
+                <span class="recommend-priority ${priorityClass}">
+                    ${priorityText}
+                </span>
+
+                <span class="recommend-icon">
+                    🎯
+                </span>
+
+            </div>
+
+            <small class="recommend-label">
+                Recommended Next Topic
+            </small>
+
+            <h3>
+                ${data.recommended_topic}
+            </h3>
+
+            <div class="recommend-subject">
+                
+                <div class="recommend-subject-top">
+                    
+                    <span>📚 Subject</span>
+
+                    <span class="source-badge">
+                        ${data.recommendation_source}
+                    </span>
+
+                </div>
+
+                <strong>
+                    ${data.recommended_subject}
+                </strong>
+
+            </div>
+
+            <div class="recommend-reason">
+
+                <span>Why this topic?</span>
+
+                <p>
+                    ${reasonText}
+                </p>
+
+            </div>
+
+            <div class="recommend-action-row">
+
+                <div>
+                    <small>Suggested Action</small>
+                    <strong>Review notes and retry quiz</strong>
+                </div>
+
+            </div>
+
+            <button onclick="goRecommendedTopic()">
+                🚀 Continue Learning
+            </button>
+
+        </div>
+
+        `;
+
+    } else {
+
+            recommendationCard.innerHTML = `
+
+                <div class="empty-card">
+
+                    <p>
+                        Great job! No recommendations at the moment.
+                    </p>
+
+                    <small>
+                        Continue exploring other topics to strengthen your learning.
+                    </small>
+
+                </div>
+
+            `;
+        }
+    });
+}
+
+function loadOverallProfile() {
+
+    const user_id =
+        localStorage.getItem("user_id");
+
+    fetch(
+`http://localhost/sms/backend/dashboard/get_overall_profile.php?user_id=${user_id}`
+    )
+
+    .then(res => res.json())
+
+    .then(profile => {
+
+        const profileCard =
+            document.getElementById("learningProfileContent");
+
+        let weakTopicHTML = "";
+
+        if (
+            profile.strong_topic === profile.weak_topic
+        ) {
+
+            weakTopicHTML = `
+                <div class="analytics-alert">
+                    <span>⚠</span>
+
+                    <div>
+                        <h4>More Data Needed</h4>
+                        <p>
+                            Complete quizzes from more topics to identify your weakest topic accurately.
+                        </p>
+                    </div>
+                </div>
+            `;
+
+        } else {
+
+            weakTopicHTML = `
+                <div class="analytics-topic weak-topic-box">
+                    <small>⚠ Needs Improvement</small>
+                    <h3>${profile.weak_topic}</h3>
+                    <p>${profile.weak_score}% Average Score</p>
+                </div>
+            `;
+        }
+
+        profileCard.innerHTML = `
+
+            <div class="learning-overview-card">
+
+                <div class="level-highlight">
+
+                    <small>Overall Learning Level</small>
+
+                    <h2>
+                        ${profile.current_level}
+                    </h2>
+
+                    <p>
+                        Based on your latest quiz performance and learning activity.
+                    </p>
+
+                </div>
+
+                <div class="profile-metric-grid">
+
+                    <div class="mini-metric">
+                        <span>📚</span>
+                        <small>Subjects Studied</small>
+                        <h3>${profile.subjects_studied}</h3>
+                    </div>
+
+                    <div class="mini-metric">
+                        <span>✅</span>
+                        <small>Topics Completed</small>
+                        <h3>${profile.topics_completed}</h3>
+                    </div>
+
+                    <div class="mini-metric">
+                        <span>🎯</span>
+                        <small>Quiz Accuracy</small>
+                        <h3>${profile.average_score}%</h3>
+                    </div>
+
+                    <div class="mini-metric">
+                        <span>🔥</span>
+                        <small>Learning Status</small>
+                        <h3>
+                            ${
+                                profile.average_score >= 80
+                                ? "Strong"
+                                : profile.average_score >= 50
+                                ? "Improving"
+                                : "Practice"
+                            }
+                        </h3>
+                    </div>
+
+                </div>
+
+                <div class="analytics-topic strong-topic-box">
+
+                    <small>🏆 Strongest Topic</small>
+
+                    <h3>
+                        ${profile.strong_topic}
+                    </h3>
+
+                    <p>
+                        ${profile.strong_score}% Average Score
+                    </p>
+
+                </div>
+
+                ${weakTopicHTML}
+
+            </div>
+
+        `;
+    });
+}
+
+function loadRecentLearning(days) {
+
+    const user_id =
+        localStorage.getItem("user_id");
+
+    fetch(
+`http://localhost/sms/backend/dashboard/get_recent_learning.php?user_id=${user_id}&days=${days}`
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        const container =
+            document.getElementById("recentLearning");
+
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+
+            container.innerHTML = `
+                <div class="card">
+                    <h3>No learning history found</h3>
+                </div>
+            `;
+
+            return;
+        }
+
+        data.forEach(item => {
+
+            container.innerHTML += `
+
+                <div class="card fade">
+
+                    <h3>${item.subject_name}</h3>
+
+                    <p>
+                        📘 ${item.topic_name}
+                    </p>
+
+                    <div class="progress">
+                        <div class="progress-bar"
+                             style="width:${item.progress_percent}%">
+                        </div>
+                    </div>
+
+                    <p>
+                        ${item.progress_percent}% Completed
+                    </p>
+
+                    <small>
+                        Last opened: ${item.last_opened}
+                    </small>
+
+                    <br><br>
+
+                    <button onclick="continueTopic(${item.topic_id})">
+                        Continue
+                    </button>
+
+                </div>
+
+            `;
+        });
+
+        AOS.refresh();
+    });
+}
+
+function continueTopic(topic_id) {
+
+    window.location.href =
+        "notes.html?topic_id=" + topic_id;
+}
+
+function goRecommendedTopic() {
+
+    if (!recommendedTopicId) {
+        alert("No recommended topic available");
+        return;
+    }
+
+    window.location.href =
+        "notes.html?topic_id=" + recommendedTopicId;
+}
+
+function logout() {
+
+    localStorage.clear();
+
+    window.location.href =
+        "login.html";
+}
+
+loadDashboardStats();
+
+</script>
+
+</body>
+</html>
