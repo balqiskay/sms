@@ -67,28 +67,39 @@ pg_query($conn, "
     WHERE attempt_id = $attempt_id
 ");
 
-if ($percentage >= 80) {
+/* UPDATE CURRENT LEVEL ONLY AFTER ENOUGH QUIZ DATA */
 
-    $current_level = "Strong";
-
-} else if ($percentage >= 50) {
-
-    $current_level = "Good";
-
-} else {
-
-    $current_level = "Weak";
-}
-
-pg_query($conn, "
-
-    UPDATE users
-
-    SET current_level = '$current_level'
-
+$levelQuery = pg_query($conn, "
+    SELECT 
+        COUNT(DISTINCT topic_id) AS attempted_topics,
+        ROUND(AVG(score)) AS avg_score
+    FROM quiz_attempt
     WHERE user_id = $user_id
-
 ");
+
+$levelData = pg_fetch_assoc($levelQuery);
+
+$attemptedTopics = (int)$levelData["attempted_topics"];
+$avgScore = (int)$levelData["avg_score"];
+
+if ($attemptedTopics >= 2) {
+
+    if ($avgScore >= 80) {
+        $current_level = "Strong";
+    }
+    else if ($avgScore >= 50) {
+        $current_level = "Good";
+    }
+    else {
+        $current_level = "Weak";
+    }
+
+    pg_query($conn, "
+        UPDATE users
+        SET current_level = '$current_level'
+        WHERE user_id = $user_id
+    ");
+}
 
 echo json_encode([
     "score" => $score,
