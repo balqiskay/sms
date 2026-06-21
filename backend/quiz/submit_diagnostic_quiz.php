@@ -168,21 +168,61 @@ $query = pg_query($conn, "
 
 ");
 
-/* UPDATE USER LEARNING LEVEL */
+/* CALCULATE OVERALL CURRENT LEVEL FROM ALL DIAGNOSTICS */
+
+$overallQuery = pg_query($conn, "
+
+    SELECT level
+
+    FROM subject_diagnostic
+
+    WHERE user_id = $user_id
+
+");
+
+$totalPoints = 0;
+$totalDiagnostics = 0;
+
+while ($row = pg_fetch_assoc($overallQuery)) {
+
+    if ($row["level"] === "Strong") {
+        $totalPoints += 3;
+    }
+    else if ($row["level"] === "Good") {
+        $totalPoints += 2;
+    }
+    else {
+        $totalPoints += 1;
+    }
+
+    $totalDiagnostics++;
+}
+
+$averageLevel =
+    $totalPoints / $totalDiagnostics;
+
+if ($averageLevel >= 2.5) {
+    $overallLevel = "Strong";
+}
+else if ($averageLevel >= 1.5) {
+    $overallLevel = "Good";
+}
+else {
+    $overallLevel = "Weak";
+}
+
+/* UPDATE USER OVERALL LEVEL */
 
 pg_query($conn, "
 
     UPDATE users
 
     SET
-
-        current_level = '$level',
-
+        current_level = '$overallLevel',
         diagnostic_done = TRUE,
-
         diagnostic_score = $score,
-
-        diagnostic_total = $total
+        diagnostic_total = $total,
+        diagnostic_level = '$level'
 
     WHERE user_id = $user_id
 
