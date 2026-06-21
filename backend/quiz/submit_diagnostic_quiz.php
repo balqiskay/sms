@@ -168,6 +168,30 @@ $query = pg_query($conn, "
 
 ");
 
+$query = pg_query($conn, "
+
+    INSERT INTO subject_diagnostic
+    (
+        user_id,
+        subject_id,
+        score,
+        total,
+        level,
+        recommended_topic_id
+    )
+
+    VALUES
+    (
+        $user_id,
+        $subject_id,
+        $score,
+        $total,
+        '$level',
+        $recommended_topic_id_sql
+    )
+
+");
+
 if ($query) {
 
     echo json_encode([
