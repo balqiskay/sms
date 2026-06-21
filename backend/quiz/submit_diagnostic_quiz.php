@@ -168,27 +168,23 @@ $query = pg_query($conn, "
 
 ");
 
-$query = pg_query($conn, "
+/* UPDATE USER LEARNING LEVEL */
 
-    INSERT INTO subject_diagnostic
-    (
-        user_id,
-        subject_id,
-        score,
-        total,
-        level,
-        recommended_topic_id
-    )
+pg_query($conn, "
 
-    VALUES
-    (
-        $user_id,
-        $subject_id,
-        $score,
-        $total,
-        '$level',
-        $recommended_topic_id_sql
-    )
+    UPDATE users
+
+    SET
+
+        current_level = '$level',
+
+        diagnostic_done = TRUE,
+
+        diagnostic_score = $score,
+
+        diagnostic_total = $total
+
+    WHERE user_id = $user_id
 
 ");
 
