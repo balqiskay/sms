@@ -590,35 +590,83 @@ function loadOverallProfile() {
         const profileCard =
             document.getElementById("learningProfileContent");
 
-        let weakTopicHTML = "";
+        let strongTopicHTML = "";
+        
+        if (profile.strong_topic === "-") {
+            
+            strongTopicHTML = `
+            <div class="analytics-topic strong-topic-box">
+                
+                <small>🏆 Strongest Topic</small>
+                
+                <h3>Not Available</h3>
+                <p>No quiz completed yet.</p>
 
-        if (
-            profile.strong_topic === profile.weak_topic
-        ) {
-
-            weakTopicHTML = `
-                <div class="analytics-alert">
-                    <span>⚠</span>
-
-                    <div>
-                        <h4>More Data Needed</h4>
-                        <p>
-                            Complete quizzes from more topics to identify your weakest topic accurately.
-                        </p>
-                    </div>
-                </div>
+            </div>
             `;
 
         } else {
+            
+            strongTopicHTML = `
+            <div class="analytics-topic strong-topic-box">
+                
+                <small>🏆 Strongest Topic</small>
 
-            weakTopicHTML = `
-                <div class="analytics-topic weak-topic-box">
-                    <small>⚠ Needs Improvement</small>
-                    <h3>${profile.weak_topic}</h3>
-                    <p>${profile.weak_score}% Average Score</p>
-                </div>
+                <h3>${profile.strong_topic}</h3>
+
+                <p>${profile.strong_score}% Average Score</p>
+
+            </div>
             `;
+
         }
+
+       let weakTopicHTML = "";
+
+       if (profile.weak_topic === "-") {
+        
+        weakTopicHTML = `
+        
+        <div class="analytics-alert">
+
+            <span>📚</span>
+
+            <div>
+
+                <h4>No Quiz Completed Yet</h4>
+
+                <p>
+                    Complete your first topic quiz to identify the topic that needs the most improvement.
+                </p>
+
+            </div>
+
+        </div>
+
+        `;
+
+    }
+    else {
+        
+        weakTopicHTML = `
+
+        <div class="analytics-topic weak-topic-box">
+
+            <small>⚠ Needs Improvement</small>
+
+            <h3>
+                ${profile.weak_topic}
+            </h3>
+
+            <p>
+                ${profile.weak_score}% Average Score
+            </p>
+
+        </div>
+
+        `;
+
+    }
 
         profileCard.innerHTML = `
 
@@ -629,7 +677,11 @@ function loadOverallProfile() {
                     <small>Overall Learning Level</small>
 
                     <h2>
-                        ${profile.current_level}
+                        ${
+                        profile.current_level
+                        ? profile.current_level
+                        : "Not Assessed Yet"
+                        }
                     </h2>
 
                     <p>
@@ -655,7 +707,13 @@ function loadOverallProfile() {
                     <div class="mini-metric">
                         <span>🎯</span>
                         <small>Quiz Accuracy</small>
-                        <h3>${profile.average_score}%</h3>
+                        <h3>
+                            ${
+                            profile.average_score === null
+                            ? "-"
+                            : profile.average_score + "%"
+                            }
+                        </h3>
                     </div>
 
                     <div class="mini-metric">
@@ -663,30 +721,20 @@ function loadOverallProfile() {
                         <small>Learning Status</small>
                         <h3>
                             ${
-                                profile.average_score >= 80
-                                ? "Strong"
-                                : profile.average_score >= 50
-                                ? "Improving"
-                                : "Practice"
+                            profile.average_score === null
+                            ? "Take Diagnostic"
+                            : profile.average_score >= 80
+                            ? "Strong"
+                            : profile.average_score >= 50
+                            ? "Improving"
+                            : "Practice"
                             }
                         </h3>
                     </div>
 
                 </div>
 
-                <div class="analytics-topic strong-topic-box">
-
-                    <small>🏆 Strongest Topic</small>
-
-                    <h3>
-                        ${profile.strong_topic}
-                    </h3>
-
-                    <p>
-                        ${profile.strong_score}% Average Score
-                    </p>
-
-                </div>
+                ${strongTopicHTML}
 
                 ${weakTopicHTML}
 

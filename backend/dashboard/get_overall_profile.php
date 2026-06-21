@@ -45,25 +45,20 @@ $completed = pg_fetch_result(
 
 /* AVERAGE QUIZ SCORE */
 
-$avg = pg_fetch_result(
+$quizQuery = pg_query($conn,"
+    SELECT ROUND(AVG(score)) AS avg_score,
+           COUNT(*) AS total_attempts
+    FROM quiz_attempt
+    WHERE user_id = $user_id
+");
 
-    pg_query($conn, "
+$quiz = pg_fetch_assoc($quizQuery);
 
-        SELECT COALESCE(
-            ROUND(AVG(score)),
-            0
-        )
-
-        FROM quiz_attempt
-
-        WHERE user_id = $user_id
-
-    "),
-
-    0,
-    0
-
-);
+if ($quiz["total_attempts"] == 0) {
+    $avg = null;
+} else {
+    $avg = (int)$quiz["avg_score"];
+}
 
 /* STRONGEST TOPIC */
 
@@ -138,18 +133,21 @@ $weakTopic =
 /* CURRENT LEVEL */
 
 $user = pg_fetch_assoc(
-
     pg_query($conn, "
-
-        SELECT current_level
-
+        SELECT
+            current_level,
+            diagnostic_done
         FROM users
-
         WHERE user_id = $user_id
-
     ")
-
 );
+
+$currentLevel = $user["current_level"];
+
+/* New student */
+if ($user["diagnostic_done"] != "t") {
+    $currentLevel = "Not Assessed Yet";
+}
 
 echo json_encode([
 
@@ -159,8 +157,11 @@ echo json_encode([
 
     "average_score" => $avg,
 
+    "has_quiz" =>
+    $quiz["total_attempts"] > 0,
+
     "current_level" =>
-        $user["current_level"],
+        $currentLevel,
 
     "strong_topic" =>
         $strongTopic["topic_name"],
