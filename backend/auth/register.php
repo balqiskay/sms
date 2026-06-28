@@ -1,27 +1,56 @@
 <?php
+
 include('../db.php');
 
-$name = $_POST['name'];
-$email = $_POST['email'];
-$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+header("Content-Type: application/json");
 
-// check if email exists
-$check = pg_query($conn, "SELECT * FROM users WHERE email='$email'");
+$name = trim($_POST['name'] ?? '');
+$email = trim($_POST['email'] ?? '');
+$password_raw = $_POST['password'] ?? '';
 
-if (pg_num_rows($check) > 0) {
-    echo json_encode(["status"=>"error","message"=>"Email already exists"]);
+if ($name == "" || $email == "" || $password_raw == "") {
+    echo json_encode([
+        "status" => "error",
+        "message" => "Please fill in all required fields."
+    ]);
     exit;
 }
 
-// insert user
-$query = "INSERT INTO users (name, email, password, role) 
-          VALUES ('$name', '$email', '$password', 'student')";
+$password = password_hash($password_raw, PASSWORD_DEFAULT);
 
-$result = pg_query($conn, $query);
+// CHECK IF EMAIL EXISTS
+$check = pg_query_params(
+    $conn,
+    "SELECT user_id FROM users WHERE email = $1",
+    [$email]
+);
+
+if (pg_num_rows($check) > 0) {
+    echo json_encode([
+        "status" => "error",
+        "message" => "Email already exists. Please use another email."
+    ]);
+    exit;
+}
+
+// INSERT USER
+$result = pg_query_params(
+    $conn,
+    "INSERT INTO users (name, email, password, role)
+     VALUES ($1, $2, $3, 'student')",
+    [$name, $email, $password]
+);
 
 if ($result) {
-    echo json_encode(["status"=>"success"]);
+    echo json_encode([
+        "status" => "success",
+        "message" => "Registration successful!"
+    ]);
 } else {
-    echo json_encode(["status"=>"error"]);
+    echo json_encode([
+        "status" => "error",
+        "message" => "Registration failed. Please try again."
+    ]);
 }
+
 ?>

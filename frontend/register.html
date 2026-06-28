@@ -165,7 +165,10 @@ function register() {
             data.status === "registered"
         ) {
 
-            alert("Registration successful!");
+            alert(
+                data.message ||
+                "Registration successful!"
+            );
 
             setTimeout(() => {
 
@@ -177,7 +180,7 @@ function register() {
         else {
 
             alert(
-                data.status ||
+                data.message ||
                 "Registration failed"
             );
         }
