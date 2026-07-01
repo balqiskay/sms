@@ -201,16 +201,33 @@ function loadSubjects() {
 
             const icon = icons[index % icons.length];
 
-            const progress = subject.progress_percent || 0;
+            const progress = Number(subject.progress_percent || 0);
 
-            const totalTopics = subject.total_topics || 0;
+            const totalTopics = Number(subject.total_topics || 0);
 
-            const completedTopics = subject.completed_topics || 0;
+            const completedTopics = Number(subject.completed_topics || 0);
+
+            const diagnosticDone =
+              subject.diagnostic_done === true ||
+              subject.diagnostic_done === "true" ||
+              subject.diagnostic_done == 1;
+
+            let statusText = "Not Started";
+            let statusClass = "status-none";
+
+            if (progress >= 100) {
+                statusText = "Completed";
+                statusClass = "status-complete";
+
+            } else if (progress > 0 || diagnosticDone) {
+                statusText = "In Progress";
+                statusClass = "status-progress";
+            }
 
             const buttonText =
-            progress > 0
-            ? "▶ Continue Learning"
-            : "🚀 Start Learning";
+              progress > 0 || diagnosticDone
+              ? "▶ Continue Learning"
+    :         "🚀 Start Learning";
 
             container.innerHTML += `
 
@@ -224,20 +241,8 @@ function loadSubjects() {
                     ${icon}
                 </div>
 
-                <span class="topic-status ${
-                progress >= 100
-                ? "status-complete"
-                : progress > 0
-                ? "status-progress"
-                : "status-none"
-                }">
-                ${
-                progress >= 100
-                ? "Completed"
-                : progress > 0
-                ? "In Progress"
-                : "Not Started"
-                }
+                <span class="topic-status ${statusClass}">
+                    ${statusText}
                 </span>
 
             </div>
