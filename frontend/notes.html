@@ -47,7 +47,7 @@
     <div id="notesContainer"></div>
 
     <div class="notes-nav">
-        <button onclick="prev()">
+        <button id="prevBtn" onclick="prev()">
             ⬅ Previous Section
         </button>
 
@@ -55,7 +55,7 @@
             Section 1 / 1
         </span>
 
-        <button onclick="next()">
+        <button id="nextBtn" onclick="next()">
             Next Section ➡
         </button>
     </div>
@@ -224,6 +224,31 @@ function render() {
 
     sectionInfo.innerText =
         "Section " + (current + 1) + " / " + totalSections;
+
+        const prevBtn = document.getElementById("prevBtn");
+
+        const nextBtn = document.getElementById("nextBtn");
+
+        // Only one section
+        if (totalSections === 1) {
+            prevBtn.style.display = "none";
+            nextBtn.style.display = "none";
+        }
+        // First section
+        else if (current === 0) {
+            prevBtn.style.display = "none";
+            nextBtn.style.display = "inline-block";
+        }
+        // Last section
+        else if (current === totalSections - 1) {
+            prevBtn.style.display = "inline-block";
+            nextBtn.style.display = "none";
+        }
+        // Middle section
+        else {
+            prevBtn.style.display = "inline-block";
+            nextBtn.style.display = "inline-block";
+        }
 
     document.getElementById("notesContainer").innerHTML = `
 
