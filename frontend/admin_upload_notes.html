@@ -124,6 +124,21 @@ function uploadPDF() {
         return;
     }
 
+    const fileName =
+    file.name.toLowerCase();
+
+    const fileType =
+    file.type;
+
+    if (
+        !fileName.endsWith(".pdf") ||
+        fileType !== "application/pdf"
+    ) {
+        alert("Invalid file format. Please upload PDF file only.");
+        document.getElementById("pdfFile").value = "";
+        return;
+    }
+
     const formData = new FormData();
 
     formData.append("topic_id", topic_id);
