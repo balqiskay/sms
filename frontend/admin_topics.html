@@ -13,6 +13,9 @@
 
 <div class="topbar">
     <h3>SMART TRACK SPM - Admin</h3>
+    <button onclick="goDashboard()">
+        ⬅ Back to Dashboard
+    </button>
 
     <button onclick="logout()">
         Logout
@@ -143,6 +146,7 @@ let deleteTopicId = null;
 loadSubjects();
 loadTopics();
 
+
 function loadSubjects() {
 
     fetch(
@@ -171,6 +175,13 @@ function loadSubjects() {
             `;
         });
     });
+}
+
+function goDashboard() {
+
+    window.location.href =
+        "admin_dashboard.html";
+
 }
 
 function loadTopics() {

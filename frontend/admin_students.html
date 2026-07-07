@@ -16,6 +16,9 @@ href="style.css?v=999">
 <!-- TOPBAR -->
 <div class="topbar">
     <h3>SMART TRACK SPM - Admin</h3>
+    <button onclick="goDashboard()">
+        ⬅ Back to Dashboard
+    </button>
     <button onclick="logout()">
         Logout
     </button>
@@ -121,6 +124,13 @@ fetch(
     console.error(error);
 
 });
+
+function goDashboard() {
+
+    window.location.href =
+        "admin_dashboard.html";
+
+}
 
 function logout() {
 

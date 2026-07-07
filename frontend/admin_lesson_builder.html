@@ -11,6 +11,9 @@
 
 <div class="topbar">
     <h3>SMART TRACK SPM - Admin</h3>
+    <button onclick="goDashboard()">
+        ⬅ Back to Dashboard
+    </button>
 
     <button onclick="logout()">
         Logout
@@ -234,6 +237,13 @@ function loadTopics() {
             `;
         });
     });
+}
+
+function goDashboard() {
+
+    window.location.href =
+        "admin_dashboard.html";
+
 }
 
 function loadSections() {
