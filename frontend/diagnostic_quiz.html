@@ -133,26 +133,24 @@ function submitDiagnosticQuiz() {
 
     const answers = [];
 
-    questions.forEach(q => {
-
+    for (const q of questions) {
+        
         const selected =
-            document.querySelector(
-                `input[name="q${q.question_id}"]:checked`
-            );
+        document.querySelector(
+            `input[name="q${q.question_id}"]:checked`
+        );
+
+        if (!selected) {
+            alert("Please answer all questions before submitting the diagnostic quiz.");
+            return;
+        }
 
         answers.push({
-
-            question_id:
-                q.question_id,
-
-            answer:
-                selected
-                ? selected.value
-                : ""
-
+            question_id: q.question_id,
+            answer: selected.value
         });
 
-    });
+    }
 
     fetch(
         "/backend/quiz/submit_diagnostic_quiz.php",
