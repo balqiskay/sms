@@ -120,7 +120,7 @@ function login() {
     // VALIDATION
     if (!email || !password) {
 
-        alert("Please fill all fields");
+        alert("Please enter your email and password");
 
         return;
     }
@@ -142,59 +142,29 @@ function login() {
     .then(response => response.json())
 
     .then(data => {
-
+        
         console.log(data);
-        alert(data.role);
 
-        // SUCCESS
         if (data.status === "success") {
-            localStorage.setItem(
-                "user_id",
-                data.user_id
-            );
+            
+            alert(data.message);
 
-            // SMALL DELAY
+            localStorage.setItem("user_id", data.user_id);
+            localStorage.setItem("name", data.name);
+            localStorage.setItem("role", data.role);
+            localStorage.setItem("diagnostic_done", data.diagnostic_done);
+
             setTimeout(() => {
-                if (data.status === "success") {
-                    
-                    // SAVE USER
-                    localStorage.setItem(
-                        "user_id",
-                        data.user_id
-                    );
-
-                    localStorage.setItem(
-                        "name",
-                        data.name
-                    );
-
-                    localStorage.setItem(
-                        "role",
-                        data.role
-                    );
-
-                    localStorage.setItem(
-                        "diagnostic_done",
-                        data.diagnostic_done
-                    );
-
-                    // ADMIN
-                    if (data.role === "admin") {
-                        
-                        window.location.href = "admin_dashboard.html";
-
-                    } else {
-                        
-                        window.location.href = "dashboard.html";
-                    }
-
+                
+                if (data.role === "admin") {
+                    window.location.href = "admin_dashboard.html";
+                } else {
+                    window.location.href = "dashboard.html";
                 }
+            }, 700);
 
-            }, 500);
-
-        }
-        else {
-            alert("Invalid email or password");
+        } else {
+            alert(data.message);
         }
     })
 
